@@ -1,0 +1,38 @@
+text,emotion,intensity
+I am scared about the surgery and cannot sleep,anxiety,high
+I keep worrying that the surgery might not go well and it is hard to stay calm,anxiety,high
+I feel nervous every time I think about the test results coming back,anxiety,medium
+I am anxious about starting a new medication and what side effects it might have,anxiety,medium
+I feel slightly uneasy before my appointments but it passes quickly,anxiety,low
+I constantly worry about my condition getting worse even on good days,anxiety,high
+
+The pain is manageable but still annoying,pain,medium
+The pain in my lower back is constant and makes it difficult to sit or stand,pain,high
+I experience pain on and off during the day but I can still manage,pain,medium
+The pain is mild and only noticeable when I move too much,pain,low
+The pain has become worse over the last few days and keeps me awake at night,pain,high
+There is discomfort rather than pain and it does not stop me from daily activities,pain,low
+
+I do not understand why I need this medication,confusion,medium
+I feel overwhelmed by everything that is happening and do not know how to cope,distress,high
+This situation has been emotionally exhausting and I feel drained all the time,distress,high
+I feel mentally tired and discouraged even though I am following the treatment,distress,medium
+Lately I feel emotionally overloaded and small things upset me easily,distress,medium
+I feel stressed but I am still able to manage with some effort,distress,low
+
+
+I feel hopeful after talking to the doctor,hope,medium
+I am feeling more hopeful now that I see some improvement,hope,medium
+After discussing my concerns with the doctor I feel more positive,hope,low
+The treatment seems to be helping and that gives me confidence,hope,medium
+
+The appointment happened as expected,neutral,low
+I attended the appointment and completed the recommended tests,neutral,low
+I started the medication as prescribed yesterday,neutral,low
+The follow up visit has been scheduled for next week,neutral,low
+
+I feel overwhelmed by everything that is happening and do not know how to cope,distress,high
+This situation has been emotionally exhausting and I feel drained all the time,distress,high
+I feel mentally tired and discouraged even though I am following the treatment,distress,medium
+Lately I feel emotionally overloaded and small things upset me easily,distress,medium
+I feel stressed but I am still able to manage with some effort,distress,low
