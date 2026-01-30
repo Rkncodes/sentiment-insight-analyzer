@@ -1,80 +1,50 @@
-import { useState } from "react";
-import SentimentCircle from "./components/SentimentCircle";
-import WorkflowVisualizer from "./components/WorkflowVisualizer";
-import YouTubeRecommendations from "./components/YouTubeRecommendations";
+import React from "react";
 
-function App() {
-  const [text, setText] = useState("");
-  const [language, setLanguage] = useState("auto");
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const analyze = async () => {
-    setLoading(true);
-    const res = await fetch("http://127.0.0.1:8000/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text })
-    });
-    const data = await res.json();
-    setResult(data);
-    setLoading(false);
-  };
+export default function YouTubeRecs({ videos = [] }) {
+  if (!videos.length) return null;
 
   return (
-    <div style={{ padding: "32px", maxWidth: "1200px", margin: "auto" }}>
-      <h1>Sentiment Insight Analyzer</h1>
-      <p>Multilingual sentiment analysis with structured, actionable guidance</p>
+    <section style={{ marginTop: "20px" }}>
+      <h3>Recommended Videos</h3>
 
-      <h3>How are you feeling today?</h3>
-
-      <select
-        value={language}
-        onChange={e => setLanguage(e.target.value)}
+      <div
+        style={{
+          display: "flex",
+          gap: "20px",
+          overflowX: "auto",
+          paddingBottom: "10px"
+        }}
       >
-        <option value="auto">Auto-detect</option>
-        <option value="en">English</option>
-        <option value="hi">Hindi</option>
-        <option value="ta">Tamil</option>
-        <option value="te">Telugu</option>
-        <option value="bn">Bengali</option>
-        <option value="mr">Marathi</option>
-        <option value="gu">Gujarati</option>
-        <option value="pa">Punjabi</option>
-        <option value="or">Odia</option>
-        <option value="as">Assamese</option>
-      </select>
+        {videos.map((v, idx) => (
+          <a
+            key={idx}
+            href={`https://www.youtube.com/watch?v=${v.videoId}`}
+            target="_blank"
+            rel="noreferrer"
+            style={{ minWidth: "320px", textDecoration: "none" }}
+          >
+            <div style={{ borderRadius: "14px", overflow: "hidden", background: "#000" }}>
+              <img
+                src={v.thumbnail}
+                alt={v.title}
+                style={{ width: "100%", height: "180px", objectFit: "cover" }}
+              />
+            </div>
 
-      <textarea
-        rows={5}
-        placeholder="Enter one statement per line (max 20)"
-        value={text}
-        onChange={e => setText(e.target.value)}
-        style={{ width: "100%", marginTop: "12px" }}
-      />
+            <p style={{ fontWeight: 600, color: "#0f172a", marginTop: "8px" }}>
+              {v.title}
+            </p>
 
-      <button onClick={analyze} disabled={loading}>
-        {loading ? "Analyzing..." : "Analyze"}
-      </button>
+            <p style={{ fontSize: "12px", color: "#475569" }}>
+              {v.channel}
+            </p>
 
-      {result && (
-        <>
-          <SentimentCircle
-            sentiment={result.sentiment}
-            confidence={result.confidence}
-            severity={result.severity}
-          />
-
-          <WorkflowVisualizer
-            roadmap={result.roadmap}
-            severity={result.severity}
-          />
-
-          <YouTubeRecommendations sentiment={result.sentiment} />
-        </>
-      )}
-    </div>
+            <p style={{ fontSize: "12px", color: "#64748b" }}>
+              {v.views} • {v.published}
+            </p>
+          </a>
+        ))}
+      </div>
+    </section>
   );
 }
-
-export default App;

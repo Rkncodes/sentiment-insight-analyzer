@@ -124,54 +124,73 @@ def translate(text: str, src: str, tgt: str) -> str:
         skip_special_tokens=True
     )[0]
 
-def severity_from_sentiment(sentiment: str, confidence: float) -> str:
-    # IMPORTANT: prevent over-escalation
-    if sentiment == "High emotional distress" and confidence >= 0.75:
+# =========================
+# SEVERITY (FIXED, MODEL-DRIVEN)
+# =========================
+
+def severity_from_result(result: dict) -> str:
+    labels = result["labels"]
+    scores = result["scores"]
+
+    score_map = dict(zip(labels, scores))
+
+    distress = score_map.get("High emotional distress", 0)
+    fatigue = score_map.get("Low mood or fatigue", 0)
+    positive = score_map.get("Positive / motivated", 0)
+
+    # HIGH: distress dominates and positive is suppressed
+    if distress > 0.45 and distress > fatigue and positive < 0.2:
         return "High"
-    if sentiment == "Low mood or fatigue":
+
+    # MILD: fatigue or mixed emotional signal
+    if fatigue > positive:
         return "Mild"
+
     return "Low"
 
 # =========================
-# ROADMAP (SERIOUS, NON-GENERIC)
+# ROADMAP (EXPANDED, NON-GENERIC)
 # =========================
 
-def generate_roadmap(sentiment: str, severity: str):
+def generate_roadmap(severity: str):
     if severity == "High":
         return [
             {"text": "PAUSE NON-ESSENTIAL ACTIVITIES IMMEDIATELY.", "level": "critical"},
-            {"text": "ENSURE YOU ARE IN A SAFE ENVIRONMENT.", "level": "critical"},
+            {"text": "ENSURE YOU ARE IN A SAFE, CALM ENVIRONMENT.", "level": "critical"},
+            {"text": "SLOW YOUR BREATHING AND GROUND YOUR BODY.", "level": "critical"},
+            {"text": "REACH OUT TO A TRUSTED PERSON RIGHT NOW.", "level": "critical"},
             {"text": "CONSULT A QUALIFIED MEDICAL OR MENTAL HEALTH PROFESSIONAL.", "level": "critical"}
         ]
 
-    if sentiment == "Low mood or fatigue":
+    if severity == "Mild":
         return [
-            {"text": "Temporarily reduce cognitive and emotional load.", "level": "normal"},
-            {"text": "Complete one low-effort task to regain control.", "level": "normal"},
-            {"text": "Explicitly list what is within your control today.", "level": "normal"},
-            {"text": "Speak to someone you trust and can confide in.", "level": "supportive"}
+            {"text": "Reduce cognitive and emotional load temporarily.", "level": "normal"},
+            {"text": "Complete one low-effort task to regain momentum.", "level": "normal"},
+            {"text": "Identify what is within your control today.", "level": "normal"},
+            {"text": "Take a short restorative break.", "level": "normal"},
+            {"text": "Speak to someone you trust.", "level": "supportive"}
         ]
 
     return [
-        {"text": "Maintain momentum without increasing workload.", "level": "normal"},
-        {"text": "Define one measurable short-term objective.", "level": "normal"},
-        {"text": "Schedule a progress review within 7 days.", "level": "normal"}
+        {"text": "Maintain current emotional balance.", "level": "normal"},
+        {"text": "Define one meaningful short-term goal.", "level": "normal"},
+        {"text": "Allocate focused time blocks.", "level": "normal"},
+        {"text": "Reflect briefly on what is working.", "level": "normal"},
+        {"text": "Schedule a progress check in 5–7 days.", "level": "normal"}
     ]
 
 # =========================
 # YOUTUBE
 # =========================
 
-def yt_query_for_sentiment(sentiment: str):
-    if sentiment == "High emotional distress":
-        return "guided grounding exercise emotional distress"
-
-    if sentiment == "Low mood or fatigue":
+def yt_query_for_severity(severity: str):
+    if severity == "High":
+        return "grounding exercise emotional distress breathing"
+    if severity == "Mild":
         return "mental fatigue recovery calm motivation"
-
     return "positive mindset productivity motivation"
 
-def youtube_search(query: str, max_results=3):
+def youtube_search(query: str, max_results=8):
     if not YOUTUBE_API_KEY:
         return []
 
@@ -185,6 +204,7 @@ def youtube_search(query: str, max_results=3):
     }
 
     search_res = requests.get(search_url, params=search_params).json()
+
     video_ids = [
         item["id"]["videoId"]
         for item in search_res.get("items", [])
@@ -196,7 +216,7 @@ def youtube_search(query: str, max_results=3):
 
     stats_url = "https://www.googleapis.com/youtube/v3/videos"
     stats_params = {
-        "part": "snippet,contentDetails,statistics",
+        "part": "snippet,statistics",
         "id": ",".join(video_ids),
         "key": YOUTUBE_API_KEY
     }
@@ -211,8 +231,7 @@ def youtube_search(query: str, max_results=3):
             "thumbnail": item["snippet"]["thumbnails"]["high"]["url"],
             "channel": item["snippet"]["channelTitle"],
             "published": item["snippet"]["publishedAt"][:10],
-            "views": item["statistics"].get("viewCount", "0"),
-            "duration": item["contentDetails"]["duration"]
+            "views": item["statistics"].get("viewCount", "0")
         })
 
     return videos
@@ -221,15 +240,10 @@ def youtube_search(query: str, max_results=3):
 # ENDPOINTS
 # =========================
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
 @app.post("/analyze")
 def analyze_text(req: TextRequest):
     original = req.text
     lang = detect_language(original)
-
     text_en = translate(original, lang, "en")
 
     result = sentiment_classifier(
@@ -239,19 +253,18 @@ def analyze_text(req: TextRequest):
 
     sentiment = result["labels"][0]
     confidence = round(float(result["scores"][0]), 3)
-    severity = severity_from_sentiment(sentiment, confidence)
+    severity = severity_from_result(result)
 
-    roadmap_en = generate_roadmap(sentiment, severity)
+    roadmap_en = generate_roadmap(severity)
     roadmap_out = [
-        {
-            "text": translate(step["text"], "en", lang),
-            "level": step["level"]
-        }
+        {"text": translate(step["text"], "en", lang), "level": step["level"]}
         for step in roadmap_en
     ]
 
-    yt_query = yt_query_for_sentiment(sentiment)
-    yt_results = youtube_search(yt_query, max_results=3)
+    yt_results = youtube_search(
+        yt_query_for_severity(severity),
+        max_results=8
+    )
 
     return {
         "text": original,

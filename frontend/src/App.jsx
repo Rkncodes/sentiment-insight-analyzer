@@ -1,5 +1,10 @@
 import { useState } from "react";
 
+import SentimentCircle from "./components/SentimentCircle";
+import WorkflowSteps from "./components/WorkflowSteps";
+import WorkflowVisualizer from "./components/WorkflowVisualizer";
+import YouTubeRecs from "./components/YouTubeRecs";
+
 /* ---------- LANGUAGE CONFIG ---------- */
 const LANGUAGES = [
   { code: "auto", label: "Auto-detect" },
@@ -21,10 +26,49 @@ const UI_TEXT = {
   en: {
     feeling: "How are you feeling today?",
     placeholder: "Enter one statement per line (max 20)"
+  },
+  hi: {
+    feeling: "आज आप कैसा महसूस कर रहे हैं?",
+    placeholder: "प्रत्येक पंक्ति में एक वाक्य लिखें (अधिकतम 20)"
+  },
+  bn: {
+    feeling: "আজ আপনি কেমন অনুভব করছেন?",
+    placeholder: "প্রতি লাইনে একটি বাক্য লিখুন (সর্বোচ্চ ২০)"
+  },
+  mr: {
+    feeling: "आज तुम्ही कसे वाटत आहात?",
+    placeholder: "प्रत्येक ओळीत एक वाक्य लिहा (कमाल 20)"
+  },
+  gu: {
+    feeling: "આજે તમે કેવી રીતે અનુભવો છો?",
+    placeholder: "દર લાઇનમાં એક વાક્ય લખો (મહત્તમ 20)"
+  },
+  pa: {
+    feeling: "ਅੱਜ ਤੁਸੀਂ ਕਿਵੇਂ ਮਹਿਸੂਸ ਕਰ ਰਹੇ ਹੋ?",
+    placeholder: "ਹਰ ਲਾਈਨ ਵਿੱਚ ਇੱਕ ਵਾਕ ਲਿਖੋ (ਅਧਿਕਤਮ 20)"
+  },
+  ta: {
+    feeling: "இன்று நீங்கள் எப்படி உணர்கிறீர்கள்?",
+    placeholder: "ஒரு வரியில் ஒரு வாக்கியம் எழுதுங்கள் (அதிகபட்சம் 20)"
+  },
+  te: {
+    feeling: "ఈ రోజు మీరు ఎలా అనుభవిస్తున్నారు?",
+    placeholder: "ప్రతి వరుసలో ఒక వాక్యం రాయండి (గరిష్టంగా 20)"
+  },
+  kn: {
+    feeling: "ಇಂದು ನೀವು ಹೇಗಿದ್ದೀರಿ?",
+    placeholder: "ಪ್ರತಿ ಸಾಲಿಗೆ ಒಂದು ವಾಕ್ಯ ಬರೆಯಿರಿ (ಗರಿಷ್ಠ 20)"
+  },
+  or: {
+    feeling: "ଆଜି ଆପଣ କେମିତି ଅନୁଭବ କରୁଛନ୍ତି?",
+    placeholder: "ପ୍ରତ୍ୟେକ ଧାଡ଼ିରେ ଗୋଟିଏ ବାକ୍ୟ ଲେଖନ୍ତୁ (ସର୍ବାଧିକ 20)"
+  },
+  as: {
+    feeling: "আজি আপুনি কেনে অনুভৱ কৰিছে?",
+    placeholder: "প্ৰতি শাৰীত এটা বাক্য লিখক (সৰ্বাধিক ২০)"
   }
 };
 
-/* ---------- APP ---------- */
 export default function App() {
   const [text, setText] = useState("");
   const [language, setLanguage] = useState("auto");
@@ -32,44 +76,37 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const t = UI_TEXT.en;
+  const uiLang = language === "auto" ? "en" : language;
+  const t = UI_TEXT[uiLang] || UI_TEXT.en;
 
   const analyze = async () => {
     setError("");
     setResults([]);
 
-    const texts = text
-      .split("\n")
-      .map(t => t.trim())
-      .filter(Boolean);
-
-    if (texts.length === 0) {
+    if (!text.trim()) {
       setError("Please enter at least one statement.");
-      return;
-    }
-
-    if (texts.length > 20) {
-      setError("Maximum 20 statements allowed.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/analyze-batch", {
+      const res = await fetch("http://127.0.0.1:8000/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texts })
+        body: JSON.stringify({ text })
       });
 
       const data = await res.json();
-      setResults(data.results || []);
+      setResults([data]);
     } catch {
       setError("Unable to reach backend service.");
     } finally {
       setLoading(false);
     }
   };
+
+  const aggregate = results[0];
 
   return (
     <div style={{ minHeight: "100vh", background: "#eef4ff", padding: "40px" }}>
@@ -83,15 +120,11 @@ export default function App() {
           boxShadow: "0 12px 30px rgba(0,0,0,0.1)"
         }}
       >
-        <h1 style={{ fontSize: "30px", color: "#0f172a" }}>
-          Sentiment Insight Analyzer
-        </h1>
-        <p style={{ color: "#334155" }}>
-          Multilingual sentiment analysis with structured, actionable guidance.
-        </p>
+        <h1>Sentiment Insight Analyzer</h1>
+        <p>Multilingual sentiment analysis with structured, actionable guidance.</p>
 
         {/* INPUT */}
-        <section style={{ marginTop: "30px", border: "1.5px solid #bfdbfe", borderRadius: "12px", padding: "24px" }}>
+        <section style={{ marginTop: "24px", border: "1.5px solid #bfdbfe", borderRadius: "12px", padding: "24px" }}>
           <h3>Input Statements</h3>
 
           <label style={{ fontWeight: 600 }}>{t.feeling}</label>
@@ -142,56 +175,24 @@ export default function App() {
         </section>
 
         {/* RESULTS */}
-        {results.length > 0 && (
-          <section style={{ marginTop: "30px", border: "1.5px solid #bfdbfe", borderRadius: "12px", padding: "24px" }}>
-            <h3>Analysis Results</h3>
+        {aggregate && (
+          <>
+            <SentimentCircle severity={aggregate.severity} />
 
-            {results.map((r, i) => (
-              <div key={i} style={{ marginTop: "20px", background: "#f8fafc", padding: "16px", borderRadius: "10px" }}>
-                <p><b>Text:</b> {r.text}</p>
-                <p><b>Sentiment:</b> {r.sentiment}</p>
-                <p><b>Severity:</b> {r.severity}</p>
-                <p><b>Confidence:</b> {r.confidence}</p>
+            <section style={{ marginTop: "24px", border: "1.5px solid #bfdbfe", borderRadius: "12px", padding: "24px" }}>
+              <h3>Analysis Results</h3>
 
-                <p style={{ fontWeight: 600, marginTop: "10px" }}>Recommended Workflow:</p>
-                <ul>
-                  {r.roadmap.map((s, idx) => (
-                    <li key={idx}>{s.text}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </section>
-        )}
+              <p><b>Text:</b> {aggregate.text}</p>
+              <p><b>Sentiment:</b> {aggregate.sentiment}</p>
+              <p><b>Severity:</b> {aggregate.severity}</p>
+              <p><b>Confidence:</b> {aggregate.confidence}</p>
 
-        {/* YOUTUBE RECOMMENDATIONS */}
-        {results[0]?.youtube_recommendations?.length > 0 && (
-          <section style={{ marginTop: "32px" }}>
-            <h3>Recommended Videos</h3>
+              <WorkflowSteps steps={aggregate.roadmap} />
+              <WorkflowVisualizer steps={aggregate.roadmap} />
+            </section>
 
-            <div style={{ display: "flex", gap: "20px", overflowX: "auto" }}>
-              {results[0].youtube_recommendations.map((v, idx) => (
-                <a
-                  key={idx}
-                  href={`https://www.youtube.com/watch?v=${v.videoId}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ minWidth: "320px", textDecoration: "none" }}
-                >
-                  <div style={{ borderRadius: "14px", overflow: "hidden" }}>
-                    <img
-                      src={v.thumbnail}
-                      alt={v.title}
-                      style={{ width: "100%", height: "180px", objectFit: "cover" }}
-                    />
-                  </div>
-                  <p style={{ fontWeight: 600, color: "#0f172a", marginTop: "8px" }}>
-                    {v.title}
-                  </p>
-                </a>
-              ))}
-            </div>
-          </section>
+            <YouTubeRecs videos={aggregate.youtube_recommendations} />
+          </>
         )}
 
         <p style={{ marginTop: "24px", fontSize: "12px", color: "#475569" }}>
