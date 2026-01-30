@@ -31,3 +31,4 @@ __pycache__/
 # ML artifacts (ignore for now)
 model/
 models/
+.env

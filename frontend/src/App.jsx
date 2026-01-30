@@ -1,19 +1,88 @@
 import { useState } from "react";
 
-function App() {
-  const [textInput, setTextInput] = useState("");
+/* ---------- LANGUAGE CONFIG ---------- */
+const LANGUAGES = [
+  { code: "auto", label: "Auto-detect" },
+  { code: "en", label: "English" },
+  { code: "hi", label: "Hindi" },
+  { code: "bn", label: "Bengali" },
+  { code: "mr", label: "Marathi" },
+  { code: "gu", label: "Gujarati" },
+  { code: "pa", label: "Punjabi" },
+  { code: "ta", label: "Tamil" },
+  { code: "te", label: "Telugu" },
+  { code: "kn", label: "Kannada" },
+  { code: "or", label: "Odia" },
+  { code: "as", label: "Assamese" }
+];
+
+/* ---------- UI TEXT PER LANGUAGE ---------- */
+const UI_TEXT = {
+  en: {
+    feeling: "How are you feeling today?",
+    placeholder: "Enter one statement per line (max 20)"
+  },
+  hi: {
+    feeling: "आज आप कैसा महसूस कर रहे हैं?",
+    placeholder: "प्रत्येक पंक्ति में एक वाक्य लिखें (अधिकतम 20)"
+  },
+  bn: {
+    feeling: "আজ আপনি কেমন অনুভব করছেন?",
+    placeholder: "প্রতি লাইনে একটি বাক্য (সর্বোচ্চ ২০)"
+  },
+  mr: {
+    feeling: "आज तुम्ही कसे वाटत आहात?",
+    placeholder: "प्रत्येक ओळीत एक वाक्य (कमाल 20)"
+  },
+  gu: {
+    feeling: "આજે તમે કેવી રીતે અનુભવો છો?",
+    placeholder: "દર લાઇનમાં એક વાક્ય (મહત્તમ 20)"
+  },
+  pa: {
+    feeling: "ਅੱਜ ਤੁਸੀਂ ਕਿਵੇਂ ਮਹਿਸੂਸ ਕਰ ਰਹੇ ਹੋ?",
+    placeholder: "ਹਰ ਲਾਈਨ ਵਿੱਚ ਇੱਕ ਵਾਕ (ਅਧਿਕਤਮ 20)"
+  },
+  ta: {
+    feeling: "இன்று நீங்கள் எப்படி உணர்கிறீர்கள்?",
+    placeholder: "ஒரு வரியில் ஒரு வாக்கியம் (அதிகபட்சம் 20)"
+  },
+  te: {
+    feeling: "ఈ రోజు మీరు ఎలా అనుభవిస్తున్నారు?",
+    placeholder: "ప్రతి వరుసలో ఒక వాక్యం (గరిష్టంగా 20)"
+  },
+  kn: {
+    feeling: "ಇಂದು ನೀವು ಹೇಗಿದ್ದೀರಿ?",
+    placeholder: "ಪ್ರತಿ ಸಾಲಿಗೆ ಒಂದು ವಾಕ್ಯ (ಗರಿಷ್ಠ 20)"
+  },
+  or: {
+    feeling: "ଆଜି ଆପଣ କେମିତି ଅନୁଭବ କରୁଛନ୍ତି?",
+    placeholder: "ପ୍ରତ୍ୟେକ ଧାଡ଼ିରେ ଗୋଟିଏ ବାକ୍ୟ (ସର୍ବାଧିକ 20)"
+  },
+  as: {
+    feeling: "আজি আপুনি কেনে অনুভৱ কৰিছে?",
+    placeholder: "প্ৰতি শাৰীত এটা বাক্য (সৰ্বাধিক ২০)"
+  }
+};
+
+/* ---------- APP ---------- */
+export default function App() {
+  const [text, setText] = useState("");
+  const [language, setLanguage] = useState("auto");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleAnalyze = async () => {
+  const uiLang = language === "auto" ? "en" : language;
+  const t = UI_TEXT[uiLang] || UI_TEXT.en;
+
+  const analyze = async () => {
     setError("");
     setResults([]);
 
-    const texts = textInput
+    const texts = text
       .split("\n")
       .map(t => t.trim())
-      .filter(t => t.length > 0);
+      .filter(Boolean);
 
     if (texts.length === 0) {
       setError("Please enter at least one statement.");
@@ -21,24 +90,20 @@ function App() {
     }
 
     if (texts.length > 20) {
-      setError("Maximum 20 statements allowed per request.");
+      setError("Maximum 20 statements allowed.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/analyze-batch", {
+      const res = await fetch("http://127.0.0.1:8000/analyze-batch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ texts })
       });
 
-      if (!response.ok) {
-        throw new Error("API failed");
-      }
-
-      const data = await response.json();
+      const data = await res.json();
       setResults(data.results || []);
     } catch {
       setError("Unable to reach backend service.");
@@ -47,208 +112,185 @@ function App() {
     }
   };
 
-  const summary = results.reduce(
-    (acc, r) => {
-      acc.total += 1;
-      acc[r.risk_level] = (acc[r.risk_level] || 0) + 1;
-      return acc;
-    },
-    { total: 0 }
-  );
-
   return (
-    <div
-      style={{
-        maxWidth: "1200px",
-        width: "96%",
-        margin: "32px auto",
-        padding: "32px",
-        background: "#ffffff",
-        borderRadius: "14px",
-        boxShadow: "0 10px 28px rgba(0,0,0,0.1)"
-      }}
-    >
-      {/* Title */}
-      <h2 style={{ fontSize: "26px", marginBottom: "6px", color: "#0f172a" }}>
-        Clinical Sentiment Risk Scoring
-      </h2>
-      <p style={{ marginTop: 0, fontSize: "14px", color: "#334155" }}>
-        Batch analysis of text for emotional risk signals using machine learning
-        inference and semantic safety rules.
-      </p>
-
-      {/* INPUT SECTION */}
+    <div style={{ minHeight: "100vh", background: "#eef4ff", padding: "40px" }}>
       <div
         style={{
-          marginTop: "26px",
-          border: "1.5px solid #bfdbfe",
-          borderRadius: "12px",
-          padding: "20px"
+          maxWidth: "1200px",
+          margin: "0 auto",
+          background: "#ffffff",
+          borderRadius: "16px",
+          padding: "36px",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.1)"
         }}
       >
-        <div style={{ borderLeft: "4px solid #2563eb", paddingLeft: "14px" }}>
-          <h3 style={{ fontSize: "18px", marginBottom: "12px", color: "#0f172a" }}>
-            Input Statements
-          </h3>
+        {/* TITLE */}
+        <h1 style={{ fontSize: "30px", color: "#0f172a", marginBottom: "8px" }}>
+          Sentiment Insight Analyzer
+        </h1>
+        <p style={{ color: "#334155", fontSize: "15px" }}>
+          Multilingual sentiment analysis with structured, actionable guidance.
+        </p>
+
+        {/* INPUT */}
+        <section
+          style={{
+            marginTop: "30px",
+            border: "1.5px solid #bfdbfe",
+            borderRadius: "12px",
+            padding: "24px"
+          }}
+        >
+          <h3 style={{ marginBottom: "12px" }}>Input Statements</h3>
+
+          <label style={{ fontSize: "14px", fontWeight: 600 }}>
+            {t.feeling}
+          </label>
+
+          <div style={{ display: "flex", gap: "12px", marginTop: "10px" }}>
+            <select
+              value={language}
+              onChange={e => setLanguage(e.target.value)}
+              style={{
+                padding: "8px",
+                borderRadius: "6px",
+                border: "1px solid #c7d2fe"
+              }}
+            >
+              {LANGUAGES.map(l => (
+                <option key={l.code} value={l.code}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <textarea
             rows={6}
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
-            placeholder="Enter one statement per line (max 20)…"
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder={t.placeholder}
             style={{
+              marginTop: "14px",
               width: "100%",
               padding: "12px",
-              fontSize: "14px",
-              borderRadius: "6px",
+              fontSize: "15px",
+              borderRadius: "8px",
               border: "1px solid #c7d2fe"
             }}
           />
 
           <button
-            onClick={handleAnalyze}
+            onClick={analyze}
             disabled={loading}
             style={{
               marginTop: "16px",
-              padding: "10px 22px",
-              fontSize: "14px",
-              borderRadius: "6px",
+              padding: "10px 24px",
+              background: "#2563eb",
+              color: "#ffffff",
               border: "none",
-              backgroundColor: "#2563eb",
-              color: "#ffffff"
+              borderRadius: "6px",
+              fontSize: "14px"
             }}
           >
             {loading ? "Analyzing…" : "Analyze"}
           </button>
 
           {error && (
-            <p style={{ marginTop: "10px", color: "#b91c1c", fontSize: "14px" }}>
-              {error}
-            </p>
+            <p style={{ marginTop: "10px", color: "#b91c1c" }}>{error}</p>
           )}
-        </div>
-      </div>
+        </section>
 
-      {/* RESULTS SECTION */}
-      {results.length > 0 && (
-        <div
+        {/* RESULTS */}
+        {results.length > 0 && (
+          <section
+            style={{
+              marginTop: "30px",
+              border: "1.5px solid #bfdbfe",
+              borderRadius: "12px",
+              padding: "24px"
+            }}
+          >
+            <h3>Analysis Results</h3>
+
+            {results.map((r, i) => (
+              <div
+                key={i}
+                style={{
+                  marginTop: "20px",
+                  padding: "16px",
+                  background: "#f8fafc",
+                  borderRadius: "10px"
+                }}
+              >
+                <p><b>Text:</b> {r.text}</p>
+                <p><b>Sentiment:</b> {r.sentiment}</p>
+                <p><b>Severity:</b> {r.severity}</p>
+                <p><b>Confidence:</b> {r.confidence}</p>
+
+                <p style={{ marginTop: "10px", fontWeight: 600 }}>
+                  Recommended Workflow:
+                </p>
+
+                <ul>
+                  {r.roadmap.map((step, idx) => (
+                    <li
+                      key={idx}
+                      style={{
+                        color:
+                          step.level === "critical"
+                            ? "#991b1b"
+                            : step.level === "supportive"
+                            ? "#92400e"
+                            : "#0f172a",
+                        fontWeight:
+                          step.level === "critical" ? "700" : "400"
+                      }}
+                    >
+                      {step.text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {/* SESSION SUMMARY */}
+        {results.length > 0 && (
+          <section
+            style={{
+              marginTop: "30px",
+              padding: "16px",
+              background: "#f1f5f9",
+              borderRadius: "10px"
+            }}
+          >
+            <b>Session Summary</b>
+            <p>Total statements analyzed: {results.length}</p>
+          </section>
+        )}
+
+        {/* YT PLACEHOLDER */}
+        <section
           style={{
-            marginTop: "34px",
-            border: "1.5px solid #bfdbfe",
-            borderRadius: "12px",
-            padding: "20px"
+            marginTop: "30px",
+            padding: "16px",
+            border: "1px dashed #c7d2fe",
+            borderRadius: "10px"
           }}
         >
-          <div style={{ borderLeft: "4px solid #2563eb", paddingLeft: "14px" }}>
-            <h3 style={{ fontSize: "18px", marginBottom: "14px", color: "#0f172a" }}>
-              Results
-            </h3>
+          <b>Recommended Videos (Coming Soon)</b>
+          <p style={{ fontSize: "13px", color: "#475569" }}>
+            Video recommendations will be generated based on sentiment severity.
+          </p>
+        </section>
 
-            <table
-              width="100%"
-              style={{
-                borderCollapse: "collapse",
-                fontSize: "14px",
-                tableLayout: "fixed"
-              }}
-            >
-              <thead>
-                <tr>
-                  <th style={{ width: "45%", textAlign: "left", padding: "10px", borderBottom: "1px solid #e5e7eb" }}>
-                    Text
-                  </th>
-                  <th style={{ width: "15%", textAlign: "center", padding: "10px", borderBottom: "1px solid #e5e7eb" }}>
-                    Risk Level
-                  </th>
-                  <th style={{ width: "10%", textAlign: "center", padding: "10px", borderBottom: "1px solid #e5e7eb" }}>
-                    Score
-                  </th>
-                  <th style={{ width: "30%", textAlign: "left", padding: "10px", borderBottom: "1px solid #e5e7eb" }}>
-                    Recommendation
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((r, idx) => (
-                  <tr key={idx}>
-                    <td style={{ padding: "10px", textAlign: "left", verticalAlign: "top" }}>
-                      {r.text}
-                    </td>
-
-                    <td style={{ padding: "10px", textAlign: "center" }}>
-                      <span
-                        style={{
-                          padding: "4px 12px",
-                          borderRadius: "999px",
-                          fontSize: "12px",
-                          background:
-                            r.risk_level === "High Concern"
-                              ? "#fee2e2"
-                              : r.risk_level === "Uncertain"
-                              ? "#fef3c7"
-                              : "#dcfce7",
-                          color:
-                            r.risk_level === "High Concern"
-                              ? "#991b1b"
-                              : r.risk_level === "Uncertain"
-                              ? "#92400e"
-                              : "#166534"
-                        }}
-                      >
-                        {r.risk_level}
-                      </span>
-                    </td>
-
-                    <td style={{ padding: "10px", textAlign: "center" }}>
-                      {r.risk_score}
-                    </td>
-
-                    <td style={{ padding: "10px", textAlign: "left" }}>
-                      {r.recommendation}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* SESSION SUMMARY */}
-            <div
-              style={{
-                marginTop: "24px",
-                padding: "16px",
-                background: "#f8fafc",
-                borderRadius: "10px",
-                border: "1px solid #c7d2fe"
-              }}
-            >
-              <h4 style={{ fontSize: "15px", marginBottom: "6px", color: "#0f172a" }}>
-                Session Summary
-              </h4>
-              <p style={{ fontSize: "13px", color: "#334155" }}>
-                Total statements analyzed: {summary.total}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* DISCLAIMER */}
-      <div
-        style={{
-          marginTop: "36px",
-          padding: "16px",
-          fontSize: "12px",
-          color: "#334155",
-          background: "#f1f5f9",
-          borderRadius: "10px"
-        }}
-      >
-        This system performs per-input risk inference using machine learning and
-        semantic safety rules. It does not provide diagnosis, treatment, or
-        long-term analytics.
+        {/* DISCLAIMER */}
+        <p style={{ marginTop: "24px", fontSize: "12px", color: "#475569" }}>
+          This system provides non-clinical, informational guidance only.
+        </p>
       </div>
     </div>
   );
 }
-
-export default App;
