@@ -4,8 +4,10 @@ export default function Contact() {
       <h2 className="app-results-title">Contact</h2>
 
       <p style={{ marginBottom: "12px", color: "#334155" }}>
-        This project is built for educational and research purposes to explore
-        sentiment analysis and structured emotional guidance.
+        This project was built by a student as a hands-on exploration of machine
+        learning, natural language processing, and sentiment analysis.
+        If you have feedback, suggestions, or are interested in collaborating
+        or contributing ideas, feel free to reach out.
       </p>
 
       <p style={{ marginBottom: "8px" }}>
