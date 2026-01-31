@@ -4,6 +4,7 @@ import "./App.css";
 import SentimentCircle from "./components/SentimentCircle";
 import WorkflowVisualizer from "./components/WorkflowVisualizer";
 import YouTubeRecs from "./components/YouTubeRecs";
+import { UI_TEXT } from "./i18n/uiText";
 
 /* ---------- LANGUAGE CONFIG ---------- */
 const LANGUAGES = [
@@ -21,14 +22,6 @@ const LANGUAGES = [
   { code: "as", label: "Assamese" }
 ];
 
-/* ---------- UI TEXT ---------- */
-const UI_TEXT = {
-  en: {
-    feeling: "How are you feeling today?",
-    placeholder: "Enter one statement per line (max 20)"
-  }
-};
-
 export default function App() {
   const [text, setText] = useState("");
   const [language, setLanguage] = useState("auto");
@@ -36,9 +29,23 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const uiLang = language === "auto" ? "en" : language;
+  /* ---------- SAFE UI TEXT ---------- */
+  const uiLang = UI_TEXT[language] ? language : "en";
   const t = UI_TEXT[uiLang];
 
+  /* ---------- CLEAN RESET ON LANGUAGE SWITCH ---------- */
+  const handleLanguageChange = (e) => {
+    const newLang = e.target.value;
+    setLanguage(newLang);
+
+    // hard reset (fast + invisible to user)
+    setText("");
+    setResults([]);
+    setError("");
+    setLoading(false);
+  };
+
+  /* ---------- ANALYZE ---------- */
   const analyze = async () => {
     setError("");
     setResults([]);
@@ -74,16 +81,15 @@ export default function App() {
       <nav className="app-navbar">
         <div className="app-nav-inner">
           <div className="app-nav-brand">
-            <span className="app-nav-logo">SENTIMENT INSIGHT ANALYZER</span>
-            <span className="app-nav-subtitle">
-              Multilingual sentiment analysis with structured and actionable guidance
-            </span>
+            <span className="app-nav-logo">{t.brand}</span>
+            <span className="app-nav-subtitle">{t.subtitle}</span>
           </div>
+
           <div className="app-nav-links">
-            <span className="app-nav-link">Home</span>
-            <span className="app-nav-link">About</span>
-            <span className="app-nav-link">Doctors</span>
-            <span className="app-nav-link">Contact</span>
+            <span className="app-nav-link">{t.navHome}</span>
+            <span className="app-nav-link">{t.navAbout}</span>
+            <span className="app-nav-link">{t.navDoctors}</span>
+            <span className="app-nav-link">{t.navContact}</span>
           </div>
         </div>
       </nav>
@@ -94,16 +100,16 @@ export default function App() {
           {/* ---------- INPUT ---------- */}
           <section className="app-input-box">
             <div className="app-input-header-row">
-              <h2 className="app-input-heading">Input Statements</h2>
+              <h2 className="app-input-heading">{t.inputHeading}</h2>
 
               <div className="app-input-lang-row">
-                <span className="app-input-label">Choose language</span>
+                <span className="app-input-label">{t.chooseLanguage}</span>
                 <select
                   className="app-select"
                   value={language}
-                  onChange={e => setLanguage(e.target.value)}
+                  onChange={handleLanguageChange}
                 >
-                  {LANGUAGES.map(l => (
+                  {LANGUAGES.map((l) => (
                     <option key={l.code} value={l.code}>
                       {l.label}
                     </option>
@@ -118,7 +124,7 @@ export default function App() {
               className="app-textarea"
               rows={8}
               value={text}
-              onChange={e => setText(e.target.value)}
+              onChange={(e) => setText(e.target.value)}
               placeholder={t.placeholder}
             />
 
@@ -127,7 +133,7 @@ export default function App() {
               onClick={analyze}
               disabled={loading}
             >
-              {loading ? "Analyzing…" : "Analyze"}
+              {loading ? t.analyzing : t.analyze}
             </button>
 
             {error && <p className="app-input-error">{error}</p>}
@@ -136,39 +142,37 @@ export default function App() {
           {/* ---------- RESULTS ---------- */}
           <div className="app-results">
             {!aggregate && !loading && (
-              <p className="app-results-empty">
-                Results will appear here after analysis.
-              </p>
+              <p className="app-results-empty">{t.resultsEmpty}</p>
             )}
 
             {loading && (
-              <p className="app-results-loading">
-                Analyzing emotional tone…
-              </p>
+              <p className="app-results-loading">{t.loadingText}</p>
             )}
 
             {aggregate && (
               <>
-                {/* SENTIMENT CIRCLE */}
                 <SentimentCircle severity={aggregate.severity} />
 
-                {/* RESULTS CARD */}
                 <section className="app-results-section">
-                  <h2 className="app-results-title">Analysis Results</h2>
+                  <h2 className="app-results-title">{t.resultsTitle}</h2>
 
                   <div className="app-results-report">
                     <p className="app-results-line">
-                      <span className="app-results-label">Text:</span>
+                      <span className="app-results-label">{t.textLabel}</span>
                       {aggregate.text}
                     </p>
 
                     <p className="app-results-line">
-                      <span className="app-results-label">Sentiment:</span>
+                      <span className="app-results-label">
+                        {t.sentimentLabel}
+                      </span>
                       {aggregate.sentiment}
                     </p>
 
                     <p className="app-results-line">
-                      <span className="app-results-label">Severity:</span>
+                      <span className="app-results-label">
+                        {t.severityLabel}
+                      </span>
                       <span
                         className={`app-results-severity-pill app-severity-${aggregate.severity
                           .toLowerCase()
@@ -179,25 +183,25 @@ export default function App() {
                     </p>
 
                     <p className="app-results-line">
-                      <span className="app-results-label">Confidence:</span>
+                      <span className="app-results-label">
+                        {t.confidenceLabel}
+                      </span>
                       {aggregate.confidence}
                     </p>
                   </div>
 
-                  {/* GUIDED ROADMAP CARD */}
                   <div className="app-results-roadmap-card">
                     <h3 className="app-results-roadmap-title">
-                      GUIDED ROADMAP
+                      {t.roadmapTitle}
                     </h3>
                     <p className="app-results-roadmap-subtitle">
-                      Step-by-step suggestions based on your current emotional state
+                      {t.roadmapSubtitle}
                     </p>
 
                     <WorkflowVisualizer steps={aggregate.roadmap} />
                   </div>
                 </section>
 
-                {/* YOUTUBE */}
                 <YouTubeRecs videos={aggregate.youtube_recommendations} />
               </>
             )}
@@ -206,9 +210,7 @@ export default function App() {
       </main>
 
       {/* ---------- FOOTER ---------- */}
-      <footer className="app-footer">
-        This system provides non-clinical and informational guidance only
-      </footer>
+      <footer className="app-footer">{t.footer}</footer>
     </div>
   );
 }
