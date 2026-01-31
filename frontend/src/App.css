@@ -1,42 +1,352 @@
+/* ==============================
+   ROOT & GLOBAL
+============================== */
+
 #root {
-  max-width: 1280px;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f8fafc;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ==============================
+   NAVBAR
+============================== */
+
+.app-navbar {
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 24px;
+}
+
+.app-nav-inner {
+  max-width: 1360px;
   margin: 0 auto;
-  padding: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.app-nav-brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-nav-logo {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #0f172a;
+}
+
+.app-nav-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.app-nav-links {
+  margin-left: auto;
+  display: flex;
+  gap: 32px;
+}
+
+.app-nav-link {
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.app-nav-link:hover {
+  color: #1e40af;
+}
+
+/* ==============================
+   MAIN LAYOUT
+============================== */
+
+.app-main-section {
+  flex-grow: 1;
+  width: 100%;
+  background: #eff6ff;
+  padding: 20px 24px;
+}
+
+.app-container {
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+/* ==============================
+   INPUT SECTION
+============================== */
+
+.app-input-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.app-input-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.app-input-heading {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.app-input-lang-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-input-label {
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.app-input-prompt {
+  margin: 12px 0 8px;
+  font-size: 1rem;
+  color: #475569;
+}
+
+.app-textarea {
+  width: 100%;
+  min-height: 12rem;
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #93c5fd;
+  resize: vertical;
+}
+
+.app-textarea:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25);
+}
+
+.app-analyze-btn {
+  margin-top: 12px;
+  padding: 12px 28px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.app-analyze-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.app-analyze-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.app-input-error {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: #b91c1c;
+}
+
+/* ==============================
+   RESULTS SECTION
+============================== */
+
+.app-results {
+  margin-top: 20px;
+}
+
+.app-results-empty,
+.app-results-loading {
+  padding: 24px;
   text-align: center;
+  font-size: 1.05rem;
+  color: #64748b;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.app-results-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.app-results-title {
+  margin-bottom: 20px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* ==============================
+   REPORT SUMMARY
+============================== */
+
+.app-results-report {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
-.card {
-  padding: 2em;
+.app-results-line {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: #0f172a;
 }
 
-.read-the-docs {
-  color: #888;
+.app-results-label {
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-right: 8px;
+}
+
+.app-results-severity-pill {
+  margin-left: 8px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.app-severity-low {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.app-severity-mild {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #92400e;
+}
+
+.app-severity-high {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+/* ==============================
+   GUIDED ROADMAP CARD
+============================== */
+
+.app-results-roadmap-card {
+  margin-top: 16px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.app-results-roadmap-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.app-results-roadmap-subtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-bottom: 18px;
+}
+
+/* ==============================
+   YOUTUBE RECOMMENDATIONS
+============================== */
+
+.app-youtube-section {
+  margin-top: 24px;
+}
+
+.app-youtube-title {
+  margin-bottom: 14px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.app-youtube-list {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 12px;
+}
+
+.app-youtube-list::-webkit-scrollbar {
+  height: 8px;
+}
+
+.app-youtube-list::-webkit-scrollbar-thumb {
+  background: #c7d2fe;
+  border-radius: 4px;
+}
+
+.app-youtube-card {
+  min-width: 260px;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.app-youtube-thumb-wrap {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.app-youtube-thumb {
+  width: 100%;
+  height: 136px;
+  object-fit: cover;
+}
+
+.app-youtube-video-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 8px 0 4px;
+  color: #0f172a;
+}
+
+.app-youtube-channel,
+.app-youtube-meta {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* ==============================
+   FOOTER
+============================== */
+
+.app-footer {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding: 14px 24px;
+  font-size: 0.8rem;
+  color: #64748b;
+  text-align: center;
 }

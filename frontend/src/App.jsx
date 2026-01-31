@@ -1,7 +1,7 @@
 import { useState } from "react";
 
+import "./App.css";
 import SentimentCircle from "./components/SentimentCircle";
-import WorkflowSteps from "./components/WorkflowSteps";
 import WorkflowVisualizer from "./components/WorkflowVisualizer";
 import YouTubeRecs from "./components/YouTubeRecs";
 
@@ -26,46 +26,6 @@ const UI_TEXT = {
   en: {
     feeling: "How are you feeling today?",
     placeholder: "Enter one statement per line (max 20)"
-  },
-  hi: {
-    feeling: "आज आप कैसा महसूस कर रहे हैं?",
-    placeholder: "प्रत्येक पंक्ति में एक वाक्य लिखें (अधिकतम 20)"
-  },
-  bn: {
-    feeling: "আজ আপনি কেমন অনুভব করছেন?",
-    placeholder: "প্রতি লাইনে একটি বাক্য লিখুন (সর্বোচ্চ ২০)"
-  },
-  mr: {
-    feeling: "आज तुम्ही कसे वाटत आहात?",
-    placeholder: "प्रत्येक ओळीत एक वाक्य लिहा (कमाल 20)"
-  },
-  gu: {
-    feeling: "આજે તમે કેવી રીતે અનુભવો છો?",
-    placeholder: "દર લાઇનમાં એક વાક્ય લખો (મહત્તમ 20)"
-  },
-  pa: {
-    feeling: "ਅੱਜ ਤੁਸੀਂ ਕਿਵੇਂ ਮਹਿਸੂਸ ਕਰ ਰਹੇ ਹੋ?",
-    placeholder: "ਹਰ ਲਾਈਨ ਵਿੱਚ ਇੱਕ ਵਾਕ ਲਿਖੋ (ਅਧਿਕਤਮ 20)"
-  },
-  ta: {
-    feeling: "இன்று நீங்கள் எப்படி உணர்கிறீர்கள்?",
-    placeholder: "ஒரு வரியில் ஒரு வாக்கியம் எழுதுங்கள் (அதிகபட்சம் 20)"
-  },
-  te: {
-    feeling: "ఈ రోజు మీరు ఎలా అనుభవిస్తున్నారు?",
-    placeholder: "ప్రతి వరుసలో ఒక వాక్యం రాయండి (గరిష్టంగా 20)"
-  },
-  kn: {
-    feeling: "ಇಂದು ನೀವು ಹೇಗಿದ್ದೀರಿ?",
-    placeholder: "ಪ್ರತಿ ಸಾಲಿಗೆ ಒಂದು ವಾಕ್ಯ ಬರೆಯಿರಿ (ಗರಿಷ್ಠ 20)"
-  },
-  or: {
-    feeling: "ଆଜି ଆପଣ କେମିତି ଅନୁଭବ କରୁଛନ୍ତି?",
-    placeholder: "ପ୍ରତ୍ୟେକ ଧାଡ଼ିରେ ଗୋଟିଏ ବାକ୍ୟ ଲେଖନ୍ତୁ (ସର୍ବାଧିକ 20)"
-  },
-  as: {
-    feeling: "আজি আপুনি কেনে অনুভৱ কৰিছে?",
-    placeholder: "প্ৰতি শাৰীত এটা বাক্য লিখক (সৰ্বাধিক ২০)"
   }
 };
 
@@ -77,7 +37,7 @@ export default function App() {
   const [error, setError] = useState("");
 
   const uiLang = language === "auto" ? "en" : language;
-  const t = UI_TEXT[uiLang] || UI_TEXT.en;
+  const t = UI_TEXT[uiLang];
 
   const analyze = async () => {
     setError("");
@@ -109,96 +69,146 @@ export default function App() {
   const aggregate = results[0];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#eef4ff", padding: "40px" }}>
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          background: "#ffffff",
-          borderRadius: "16px",
-          padding: "36px",
-          boxShadow: "0 12px 30px rgba(0,0,0,0.1)"
-        }}
-      >
-        <h1>Sentiment Insight Analyzer</h1>
-        <p>Multilingual sentiment analysis with structured, actionable guidance.</p>
-
-        {/* INPUT */}
-        <section style={{ marginTop: "24px", border: "1.5px solid #bfdbfe", borderRadius: "12px", padding: "24px" }}>
-          <h3>Input Statements</h3>
-
-          <label style={{ fontWeight: 600 }}>{t.feeling}</label>
-
-          <div style={{ marginTop: "10px" }}>
-            <select
-              value={language}
-              onChange={e => setLanguage(e.target.value)}
-              style={{ padding: "8px", borderRadius: "6px", border: "1px solid #c7d2fe" }}
-            >
-              {LANGUAGES.map(l => (
-                <option key={l.code} value={l.code}>{l.label}</option>
-              ))}
-            </select>
+    <div className="app-root">
+      {/* ---------- NAVBAR ---------- */}
+      <nav className="app-navbar">
+        <div className="app-nav-inner">
+          <div className="app-nav-brand">
+            <span className="app-nav-logo">SENTIMENT INSIGHT ANALYZER</span>
+            <span className="app-nav-subtitle">
+              Multilingual sentiment analysis with structured and actionable guidance
+            </span>
           </div>
+          <div className="app-nav-links">
+            <span className="app-nav-link">Home</span>
+            <span className="app-nav-link">About</span>
+            <span className="app-nav-link">Doctors</span>
+            <span className="app-nav-link">Contact</span>
+          </div>
+        </div>
+      </nav>
 
-          <textarea
-            rows={6}
-            value={text}
-            onChange={e => setText(e.target.value)}
-            placeholder={t.placeholder}
-            style={{
-              marginTop: "14px",
-              width: "100%",
-              padding: "12px",
-              fontSize: "15px",
-              borderRadius: "8px",
-              border: "1px solid #c7d2fe"
-            }}
-          />
+      {/* ---------- MAIN ---------- */}
+      <main className="app-main-section">
+        <div className="app-container">
+          {/* ---------- INPUT ---------- */}
+          <section className="app-input-box">
+            <div className="app-input-header-row">
+              <h2 className="app-input-heading">Input Statements</h2>
 
-          <button
-            onClick={analyze}
-            disabled={loading}
-            style={{
-              marginTop: "16px",
-              padding: "10px 24px",
-              background: "#2563eb",
-              color: "#fff",
-              borderRadius: "6px",
-              border: "none"
-            }}
-          >
-            {loading ? "Analyzing…" : "Analyze"}
-          </button>
+              <div className="app-input-lang-row">
+                <span className="app-input-label">Choose language</span>
+                <select
+                  className="app-select"
+                  value={language}
+                  onChange={e => setLanguage(e.target.value)}
+                >
+                  {LANGUAGES.map(l => (
+                    <option key={l.code} value={l.code}>
+                      {l.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-          {error && <p style={{ color: "#b91c1c" }}>{error}</p>}
-        </section>
+            <p className="app-input-prompt">{t.feeling}</p>
 
-        {/* RESULTS */}
-        {aggregate && (
-          <>
-            <SentimentCircle severity={aggregate.severity} />
+            <textarea
+              className="app-textarea"
+              rows={8}
+              value={text}
+              onChange={e => setText(e.target.value)}
+              placeholder={t.placeholder}
+            />
 
-            <section style={{ marginTop: "24px", border: "1.5px solid #bfdbfe", borderRadius: "12px", padding: "24px" }}>
-              <h3>Analysis Results</h3>
+            <button
+              className="app-analyze-btn"
+              onClick={analyze}
+              disabled={loading}
+            >
+              {loading ? "Analyzing…" : "Analyze"}
+            </button>
 
-              <p><b>Text:</b> {aggregate.text}</p>
-              <p><b>Sentiment:</b> {aggregate.sentiment}</p>
-              <p><b>Severity:</b> {aggregate.severity}</p>
-              <p><b>Confidence:</b> {aggregate.confidence}</p>
+            {error && <p className="app-input-error">{error}</p>}
+          </section>
 
-              <WorkflowSteps steps={aggregate.roadmap} />
-              <WorkflowVisualizer steps={aggregate.roadmap} />
-            </section>
+          {/* ---------- RESULTS ---------- */}
+          <div className="app-results">
+            {!aggregate && !loading && (
+              <p className="app-results-empty">
+                Results will appear here after analysis.
+              </p>
+            )}
 
-            <YouTubeRecs videos={aggregate.youtube_recommendations} />
-          </>
-        )}
+            {loading && (
+              <p className="app-results-loading">
+                Analyzing emotional tone…
+              </p>
+            )}
 
-        <p style={{ marginTop: "24px", fontSize: "12px", color: "#475569" }}>
-          This system provides non-clinical, informational guidance only.
-        </p>
-      </div>
+            {aggregate && (
+              <>
+                {/* SENTIMENT CIRCLE */}
+                <SentimentCircle severity={aggregate.severity} />
+
+                {/* RESULTS CARD */}
+                <section className="app-results-section">
+                  <h2 className="app-results-title">Analysis Results</h2>
+
+                  <div className="app-results-report">
+                    <p className="app-results-line">
+                      <span className="app-results-label">Text:</span>
+                      {aggregate.text}
+                    </p>
+
+                    <p className="app-results-line">
+                      <span className="app-results-label">Sentiment:</span>
+                      {aggregate.sentiment}
+                    </p>
+
+                    <p className="app-results-line">
+                      <span className="app-results-label">Severity:</span>
+                      <span
+                        className={`app-results-severity-pill app-severity-${aggregate.severity
+                          .toLowerCase()
+                          .replace(/\s+/g, "-")}`}
+                      >
+                        {aggregate.severity}
+                      </span>
+                    </p>
+
+                    <p className="app-results-line">
+                      <span className="app-results-label">Confidence:</span>
+                      {aggregate.confidence}
+                    </p>
+                  </div>
+
+                  {/* GUIDED ROADMAP CARD */}
+                  <div className="app-results-roadmap-card">
+                    <h3 className="app-results-roadmap-title">
+                      GUIDED ROADMAP
+                    </h3>
+                    <p className="app-results-roadmap-subtitle">
+                      Step-by-step suggestions based on your current emotional state
+                    </p>
+
+                    <WorkflowVisualizer steps={aggregate.roadmap} />
+                  </div>
+                </section>
+
+                {/* YOUTUBE */}
+                <YouTubeRecs videos={aggregate.youtube_recommendations} />
+              </>
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* ---------- FOOTER ---------- */}
+      <footer className="app-footer">
+        This system provides non-clinical and informational guidance only
+      </footer>
     </div>
   );
 }

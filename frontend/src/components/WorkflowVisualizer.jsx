@@ -22,19 +22,19 @@ export default function WorkflowVisualizer({ steps = [] }) {
         : level === "supportive"
         ? "#f0f9ff"
         : "#f8fafc",
-    padding: "10px",
-    borderRadius: "8px",
-    fontSize: "13px",
-    maxWidth: "180px",
+    padding: "18px 22px",
+    borderRadius: "10px",
+    fontSize: "1.125rem",
+    lineHeight: "1.45",
+    maxWidth: "260px",
     textAlign: "center"
   });
 
   return (
-    <div style={{ marginTop: "16px" }}>
-      <h4>Guided Workflow</h4>
+    <div className="app-workflow-visualizer" style={{ marginTop: "24px" }}>
 
       {/* ROW 1 */}
-      <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+      <div style={{ display: "flex", gap: "24px", justifyContent: "center" }}>
         {steps.slice(0, 2).map((s, i) => (
           <div key={i} style={box(s.level)}>{s.text}</div>
         ))}
@@ -43,7 +43,7 @@ export default function WorkflowVisualizer({ steps = [] }) {
       {/* CENTER */}
       {steps[2] && (
         <>
-          <div style={{ textAlign: "center", margin: "8px 0" }}>↓</div>
+          <div style={{ textAlign: "center", margin: "14px 0" }}>↓</div>
           <div style={{ display: "flex", justifyContent: "center" }}>
             <div style={box(steps[2].level)}>{steps[2].text}</div>
           </div>
@@ -53,8 +53,8 @@ export default function WorkflowVisualizer({ steps = [] }) {
       {/* ROW 3 */}
       {steps.length > 3 && (
         <>
-          <div style={{ textAlign: "center", margin: "8px 0" }}>↓</div>
-          <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+          <div style={{ textAlign: "center", margin: "14px 0" }}>↓</div>
+          <div style={{ display: "flex", gap: "24px", justifyContent: "center" }}>
             {steps.slice(3).map((s, i) => (
               <div key={i} style={box(s.level)}>{s.text}</div>
             ))}

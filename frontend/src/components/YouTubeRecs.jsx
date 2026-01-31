@@ -4,42 +4,35 @@ export default function YouTubeRecs({ videos = [] }) {
   if (!videos.length) return null;
 
   return (
-    <section style={{ marginTop: "20px" }}>
-      <h3>Recommended Videos</h3>
+    <section className="app-youtube-section">
+      <h3 className="app-youtube-title">Helpful resources for this emotional state</h3>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "20px",
-          overflowX: "auto",
-          paddingBottom: "10px"
-        }}
-      >
+      <div className="app-youtube-list">
         {videos.map((v, idx) => (
           <a
             key={idx}
             href={`https://www.youtube.com/watch?v=${v.videoId}`}
             target="_blank"
             rel="noreferrer"
-            style={{ minWidth: "320px", textDecoration: "none" }}
+            className="app-youtube-card"
           >
-            <div style={{ borderRadius: "14px", overflow: "hidden", background: "#000" }}>
+            <div className="app-youtube-thumb-wrap">
               <img
                 src={v.thumbnail}
                 alt={v.title}
-                style={{ width: "100%", height: "180px", objectFit: "cover" }}
+                className="app-youtube-thumb"
               />
             </div>
 
-            <p style={{ fontWeight: 600, color: "#0f172a", marginTop: "8px" }}>
+            <p className="app-youtube-video-title">
               {v.title}
             </p>
 
-            <p style={{ fontSize: "12px", color: "#475569" }}>
+            <p className="app-youtube-channel">
               {v.channel}
             </p>
 
-            <p style={{ fontSize: "12px", color: "#64748b" }}>
+            <p className="app-youtube-meta">
               {v.views} • {v.published}
             </p>
           </a>
