@@ -83,7 +83,6 @@ export default function App() {
           </div>
 
           <div className="app-nav-links">
-            <span className="app-nav-link">{t.navHome}</span>
             <span className="app-nav-link">{t.navAbout}</span>
             <span className="app-nav-link">{t.navDoctors}</span>
             <span className="app-nav-link">{t.navContact}</span>
