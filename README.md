@@ -1,57 +1,90 @@
-# SENTIMENT ANALYSIS ML PROJECT
+# Sentiment Insight Analyzer
 
-**Multilingual Sentiment Analysis & Guidance System**
+A **multilingual sentiment analysis and guidance system** built as a hands-on exploration of  
+**machine learning, natural language processing, and full-stack AI systems**.
 
----
+The application allows users to express emotions in their **native language** and receive
+**language-matched, structured, and actionable guidance**, along with **contextual YouTube recommendations**.
 
-## 1. Project Purpose
-
-This project is a **multilingual sentiment analysis system** built using a **FastAPI backend**.
-
-The system:
-
-* Accepts **free-form text** in English and multiple Indian languages
-* Automatically detects the input language
-* Translates non-English input to English
-* Performs **zero-shot sentiment classification**
-* Assigns a **severity level**
-* Generates a **step-by-step, actionable roadmap**
-* Translates responses **back into the user’s original language**
-* Returns a **structured JSON response** for frontend use
-
-**Core idea:**
-Users can express emotions in their **native language** and receive **language-matched, structured guidance**.
+> ⚠️ This project is for **educational and research purposes only**.  
+> It does **not** replace professional medical or mental health advice.
 
 ---
 
-## 2. Scope
+## Key Features
 
-### In Scope
-
-* Multilingual text input
-* Automatic language detection
-* Sentiment classification (3 categories)
-* Severity scoring
-* Actionable roadmap generation
-* REST API (FastAPI)
-* Batch inference
-
-### Non-Clinical Disclaimer
-
-This system provides **informational, non-clinical guidance only**.
-It does **not** replace professional medical or mental health advice.
+### Multilingual Input & Output
+- Automatic language detection
+- Supports:
+  - English, Hindi, Bengali, Marathi, Gujarati, Punjabi
+  - Tamil, Telugu, Kannada, Odia, Assamese
+- Non-English input is translated to English for analysis
+- All guidance is translated **back into the user’s original language**
 
 ---
 
-## 3. Project Structure
+### Sentiment & Severity Analysis
+- Zero-shot sentiment classification using `facebook/bart-large-mnli`
+- Emotional categories:
+  - **Positive / motivated**
+  - **Low mood or fatigue**
+  - **High emotional distress**
+- Severity levels:
+  - Low
+  - Mild
+  - High  
+- Severity is **model-driven**, not keyword-based
+
+---
+
+### Structured Guidance (Roadmap)
+- Deterministic, rule-based action steps
+- Tailored to severity level
+- Designed to be:
+  - Clear
+  - Non-generic
+  - Ethically safe
+- High-severity cases encourage seeking professional help
+
+---
+
+### YouTube Recommendations
+- Dynamically generated based on severity
+- Powered by YouTube Data API
+- Examples:
+  - Grounding & breathing exercises (high)
+  - Mental fatigue recovery (mild)
+  - Motivation & productivity (low)
+
+---
+
+## 🏗️ Tech Stack
+
+### Frontend
+- React 18
+- Vite
+- React Router DOM
+- Custom CSS (no UI framework)
+
+### Backend
+- FastAPI
+- Hugging Face Transformers
+- PyTorch
+- LangID (language detection)
+- YouTube Data API v3
+
+---
+
+## Project Structure
 
 ```
+
 sentiment-analysis-project/
 │
 ├── api/
 │   └── main.py               # FastAPI backend
 │
-├── frontend/                 # React frontend (WIP)
+├── frontend/                 # React frontend
 │
 ├── data/                     # Datasets (exploration only)
 ├── notebooks/                # Experiments
@@ -60,100 +93,136 @@ sentiment-analysis-project/
 ├── .env
 ├── README.md
 └── TEST_CASES.md
+
 ```
 
 ---
 
-## 4. Inference Pipeline
+## Inference Pipeline
 
 ```
+
 User Text
-   ↓
+↓
 Language Detection
-   ↓
+↓
 Translation → English
-   ↓
+↓
 Sentiment Classification
-   ↓
+↓
 Severity Mapping
-   ↓
+↓
 Roadmap Selection
-   ↓
+↓
 Translation → Original Language
-   ↓
+↓
 JSON Response
-```
+
+````
 
 ---
 
-## 5. API Usage
+## Running the Project Locally
 
-### Run the Server
+### Backend (FastAPI)
 
 ```bash
-uvicorn api.main:app --host 127.0.0.1 --port 8000
+python -m venv venv
+venv\Scripts\activate   # Windows
+pip install -r requirements.txt
+````
+
+Create a `.env` file:
+
+```env
+YOUTUBE_API_KEY=your_api_key_here
+```
+
+Run the backend:
+
+```bash
+uvicorn api.main:app --reload
+```
+
+Backend runs at:
+
+```
+http://127.0.0.1:8000
 ```
 
 ---
 
-### `/analyze` — Single Input
+### Frontend (React + Vite)
 
-**Request**
-
-```json
-{ "text": "ನಾನು ತುಂಬಾ ದಣಿದಿದ್ದೇನೆ" }
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-**Response (example)**
+Frontend runs at:
+
+```
+http://localhost:5173
+```
+
+---
+
+## API Endpoints
+
+### `POST /analyze`
+
+Analyzes a single input.
 
 ```json
 {
-  "sentiment": "Low mood or fatigue",
-  "confidence": 0.855,
-  "severity": "Mild",
-  "roadmap": [...],
-  "language": "kn"
+  "text": "ನಾನು ತುಂಬಾ ದಣಿದಿದ್ದೇನೆ"
 }
 ```
 
----
+### `POST /analyze-batch`
 
-### `/analyze-batch`
-
-Accepts a list of texts and returns results for each input.
+Analyzes multiple inputs in one request.
 
 ---
 
-## 6. Model Overview
+## Robust Input Handling
 
-* **Sentiment Model:** `facebook/bart-large-mnli`
+The system safely handles:
 
-  * Zero-shot classification
-  * Labels:
+* Empty or whitespace input
+* Symbol-only input (`...`, `!!!`)
+* Very short or ambiguous text
+* Non-English scripts
 
-    * Positive / motivated
-    * Low mood or fatigue
-    * High emotional distress
-
-* **Translation Model:** `facebook/nllb-200-distilled-600M`
-
-  * Used for both input and output translation
-
-* **Roadmap Generation:**
-
-  * Rule-based, deterministic
-  * Selected based on severity level
-  * Translated to the user’s language
+No crashes. No undefined states.
 
 ---
 
-## Final Note
+## Ethical Disclaimer
 
-This repository represents a **stable backend system** suitable for:
+This system provides **non-clinical, informational guidance only**.
+It does **not** diagnose conditions or replace professional care.
 
-* Academic submissions
-* ML/NLP demos
-* Portfolio projects
+If you are experiencing severe emotional distress, please contact a qualified
+mental health professional or local emergency services.
 
-The design prioritizes **clarity, multilingual support, and deterministic behavior** over complexity.
+---
+
+##  Author
+
+Built by a student as a practical exploration of:
+
+* Machine Learning
+* NLP
+* Full-stack AI systems
+
+**GitHub:** [https://github.com/Rkncodes](https://github.com/Rkncodes)
+**Contact:** [rajvinderkaurpersonal@email.com](mailto:rajvinderkaurpersonal@email.com)
+
+---
+
+##  License
+
+This project is intended for educational and research use only.
 
