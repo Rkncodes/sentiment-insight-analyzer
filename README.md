@@ -36,16 +36,6 @@ Users can express emotions in their **native language** and receive **language-m
 * REST API (FastAPI)
 * Batch inference
 
-### Out of Scope (Current Phase)
-
-* Medical diagnosis or therapy
-* Emergency or crisis handling
-* User accounts or persistence
-* Model training or fine-tuning
-* Deployment and scaling
-
----
-
 ### Non-Clinical Disclaimer
 
 This system provides **informational, non-clinical guidance only**.
