@@ -215,12 +215,4 @@ This project is intended for educational and research use.
 
 ```
 
----
 
-If you want next:
-- 🔹 a **shorter README for hackathons**
-- 🔹 a **resume bullet version**
-- 🔹 or a **production-grade README with architecture diagrams**
-
-say the word.
-```
