@@ -6,6 +6,7 @@ import langid
 import torch
 import os
 import requests
+import re
 from dotenv import load_dotenv
 from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
 
@@ -125,6 +126,21 @@ def translate(text: str, src: str, tgt: str) -> str:
     )[0]
 
 # =========================
+# INPUT VALIDATION (ADDED)
+# =========================
+
+def is_meaningful_text(text: str) -> bool:
+    if not text:
+        return False
+
+    cleaned = text.strip()
+
+    # Remove numbers, punctuation, symbols (keep letters across scripts)
+    cleaned = re.sub(r"[^A-Za-z\u0900-\u097F\u0B80-\u0BFF\u0C00-\u0C7F]", "", cleaned)
+
+    return len(cleaned) >= 2
+
+# =========================
 # SEVERITY (FIXED, MODEL-DRIVEN)
 # =========================
 
@@ -138,18 +154,16 @@ def severity_from_result(result: dict) -> str:
     fatigue = score_map.get("Low mood or fatigue", 0)
     positive = score_map.get("Positive / motivated", 0)
 
-    # HIGH: distress dominates and positive is suppressed
     if distress > 0.45 and distress > fatigue and positive < 0.2:
         return "High"
 
-    # MILD: fatigue or mixed emotional signal
     if fatigue > positive:
         return "Mild"
 
     return "Low"
 
 # =========================
-# ROADMAP (EXPANDED, NON-GENERIC)
+# ROADMAP
 # =========================
 
 def generate_roadmap(severity: str):
@@ -243,6 +257,12 @@ def youtube_search(query: str, max_results=8):
 @app.post("/analyze")
 def analyze_text(req: TextRequest):
     original = req.text
+
+    if not is_meaningful_text(original):
+        return {
+            "error": "Input is too short or not meaningful for sentiment analysis."
+        }
+
     lang = detect_language(original)
     text_en = translate(original, lang, "en")
 

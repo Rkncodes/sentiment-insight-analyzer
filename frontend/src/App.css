@@ -126,7 +126,8 @@ html, body {
 }
 
 .app-input-label {
-  font-size: 0.875rem;
+  font-weight: 600 ;
+  font-size: 1.05rem;
   color: #475569;
 }
 
@@ -243,25 +244,32 @@ html, body {
   white-space: nowrap;
 }
 
+/* ==============================
+   SEVERITY-BASED ROADMAP HIGHLIGHT
+   (CSS-only, non-breaking)
+============================== */
 
-
-.app-severity-low {
-  background: #dcfce7;
-  border-color: #86efac;
-  color: #166534;
+/* LOW → soft green-yellow */
+.app-results-section:has(.app-severity-low)
+  .app-results-roadmap-card:last-of-type {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
 }
 
-.app-severity-mild {
-  background: #fef3c7;
-  border-color: #fcd34d;
-  color: #92400e;
+/* MILD → soft amber */
+.app-results-section:has(.app-severity-mild)
+  .app-results-roadmap-card:last-of-type {
+  background: #fffbeb;
+  border-color: #fde68a;
 }
 
-.app-severity-high {
-  background: #fee2e2;
-  border-color: #fca5a5;
-  color: #991b1b;
+/* HIGH → soft red */
+.app-results-section:has(.app-severity-high)
+  .app-results-roadmap-card:last-of-type {
+  background: #fef2f2;
+  border-color: #fecaca;
 }
+
 
 /* ==============================
    GUIDED ROADMAP CARD
@@ -412,4 +420,115 @@ html, body {
 
 .app-results-severity-pill {
   align-self: center;
+}
+
+/* ================================
+   INFO PAGES (About / Resources / Contact)
+================================ */
+
+.info-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 48px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.info-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #0f172a;
+}
+
+.info-intro {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #334155;
+  margin-bottom: 28px;
+}
+
+.info-section {
+  margin-bottom: 24px;
+}
+
+.info-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1e293b;
+}
+
+.info-section p {
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: #475569;
+}
+
+.info-disclaimer {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* ---------- LANGUAGE DROPDOWN ---------- */
+.app-select {
+  min-width: 180px;
+  height: 42px;
+  padding: 6px 12px;
+  font-size: 0.95rem;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.app-select:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+/* LOW severity */
+.app-severity-low {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #065f46;
+}
+
+/* MILD severity */
+.app-severity-mild {
+  background: #fffbeb;
+  border-color: #fcd34d;
+  color: #92400e;
+}
+
+/* HIGH severity */
+.app-severity-high {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.app-nav-link {
+  position: relative;
+  padding-bottom: 4px;
+}
+
+.app-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0%;
+  height: 2px;
+  background-color: #2563eb;
+  transition: width 0.25s ease;
+}
+
+.app-nav-link.active::after {
+  width: 100%;
 }

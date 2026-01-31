@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 
 import "./App.css";
 import SentimentCircle from "./components/SentimentCircle";
@@ -7,6 +7,8 @@ import WorkflowVisualizer from "./components/WorkflowVisualizer";
 import YouTubeRecs from "./components/YouTubeRecs";
 import { UI_TEXT } from "./i18n/uiText";
 import Contact from "./pages/Contact";
+import About from "./pages/About";
+import Resources from "./pages/Resources";
 
 /* ---------- LANGUAGE CONFIG ---------- */
 const LANGUAGES = [
@@ -34,11 +36,9 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  /* ---------- SAFE UI TEXT ---------- */
   const uiLang = UI_TEXT[language] ? language : "en";
   const t = UI_TEXT[uiLang];
 
-  /* ---------- CLEAN RESET ON LANGUAGE SWITCH ---------- */
   const handleLanguageChange = (e) => {
     setLanguage(e.target.value);
     setText("");
@@ -47,15 +47,18 @@ function Home() {
     setLoading(false);
   };
 
-  /* ---------- ANALYZE ---------- */
   const analyze = async () => {
     setError("");
     setResults([]);
 
-    if (!text.trim()) {
-      setError("Please enter at least one statement.");
+    // Reject empty or non-semantic input (punctuation-only)
+    const hasLetters = /[a-zA-Z\u0900-\u097F\u0C80-\u0CFF]/.test(text);
+
+    if (!text.trim() || !hasLetters) {
+      setError("Input does not contain enough meaningful text for analysis.");
       return;
     }
+
 
     setLoading(true);
 
@@ -79,7 +82,6 @@ function Home() {
 
   return (
     <>
-      {/* ---------- INPUT ---------- */}
       <section className="app-input-box">
         <div className="app-input-header-row">
           <h2 className="app-input-heading">{t.inputHeading}</h2>
@@ -121,7 +123,6 @@ function Home() {
         {error && <p className="app-input-error">{error}</p>}
       </section>
 
-      {/* ---------- RESULTS ---------- */}
       <div className="app-results">
         {!aggregate && !loading && (
           <p className="app-results-empty">{t.resultsEmpty}</p>
@@ -136,7 +137,6 @@ function Home() {
             <SentimentCircle severity={aggregate.severity} />
 
             <section className="app-results-section">
-              {/* ---------- ANALYSIS RESULTS ---------- */}
               <div className="app-results-roadmap-card">
                 <h3 className="app-results-roadmap-title">
                   {t.resultsTitle}
@@ -164,11 +164,11 @@ function Home() {
                       {t.severityLabel}
                     </span>
                     <span
-                      className={`app-results-severity-pill app-severity-${aggregate.severity
+                      className={`app-results-severity-pill app-severity-${(aggregate.severity || "Low")
                         .toLowerCase()
                         .replace(/\s+/g, "-")}`}
                     >
-                      {aggregate.severity}
+                      {aggregate.severity || "Low"}
                     </span>
                   </div>
 
@@ -183,7 +183,6 @@ function Home() {
                 </div>
               </div>
 
-              {/* ---------- GUIDED ROADMAP ---------- */}
               <div className="app-results-roadmap-card">
                 <h3 className="app-results-roadmap-title">
                   {t.roadmapTitle}
@@ -209,10 +208,10 @@ function Home() {
 ========================================================= */
 export default function App() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <div className="app-root">
-      {/* ---------- NAVBAR ---------- */}
       <nav className="app-navbar">
         <div className="app-nav-inner">
           <div className="app-nav-brand">
@@ -225,27 +224,45 @@ export default function App() {
           </div>
 
           <div className="app-nav-links">
-            <span className="app-nav-link" onClick={() => navigate("/")}>
+            <span
+              className={`app-nav-link ${location.pathname === "/" ? "active" : ""}`}
+              onClick={() => navigate("/")}
+            >
               Home
             </span>
-            <span className="app-nav-link" onClick={() => navigate("/contact")}>
+            <span
+              className={`app-nav-link ${location.pathname === "/about" ? "active" : ""}`}
+              onClick={() => navigate("/about")}
+            >
+              About
+            </span>
+            <span
+              className={`app-nav-link ${location.pathname === "/resources" ? "active" : ""}`}
+              onClick={() => navigate("/resources")}
+            >
+              Resources
+            </span>
+            <span
+              className={`app-nav-link ${location.pathname === "/contact" ? "active" : ""}`}
+              onClick={() => navigate("/contact")}
+            >
               Contact
             </span>
           </div>
         </div>
       </nav>
 
-      {/* ---------- ROUTES ---------- */}
       <main className="app-main-section">
         <div className="app-container">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/resources" element={<Resources />} />
             <Route path="/contact" element={<Contact />} />
           </Routes>
         </div>
       </main>
 
-      {/* ---------- FOOTER ---------- */}
       <footer className="app-footer">
         This system provides non-clinical and informational guidance only.
       </footer>
