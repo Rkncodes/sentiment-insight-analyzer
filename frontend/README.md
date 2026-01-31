@@ -1,66 +1,60 @@
-Here’s a **clean, professional, project-specific `README.md`** you can drop in directly.
-No fluff. Clear scope. Ethically safe. Resume-ready.
-
----
-
-````md
 # Sentiment Insight Analyzer
 
-A full-stack, multilingual sentiment analysis web application built as a hands-on exploration of **machine learning, natural language processing, and applied AI systems**.
+A **multilingual sentiment analysis and guidance system** built as a hands-on exploration of  
+**machine learning, natural language processing, and full-stack AI systems**.
 
-The system analyzes user-provided text, detects emotional sentiment, assigns a severity level, and returns **structured, actionable guidance** along with **contextual YouTube recommendations**.
+The application allows users to express emotions in their **native language** and receive
+**language-matched, structured, and actionable guidance**, along with **contextual YouTube recommendations**.
 
-> ⚠️ This project is for educational and research purposes only. It does **not** replace professional medical or mental health advice.
+> ⚠️ This project is for **educational and research purposes only**.  
+> It does **not** replace professional medical or mental health advice.
 
 ---
 
-## ✨ Features
+## Key Features
 
-### 🔤 Multilingual Support
+### Multilingual Input & Output
 - Automatic language detection
 - Supports:
-  - English, Hindi, Bengali, Marathi, Gujarati, Punjabi  
+  - English, Hindi, Bengali, Marathi, Gujarati, Punjabi
   - Tamil, Telugu, Kannada, Odia, Assamese
-- Non-English inputs are translated to English for analysis and translated back for output
+- Non-English input is translated to English for analysis
+- All guidance is translated **back into the user’s original language**
 
-### 🧠 Sentiment & Severity Analysis
-- Uses **zero-shot classification** (`facebook/bart-large-mnli`)
-- Classifies emotional state into:
-  - Positive / motivated
-  - Low mood or fatigue
-  - High emotional distress
-- Derives **severity levels**:
+---
+
+### Sentiment & Severity Analysis
+- Zero-shot sentiment classification using `facebook/bart-large-mnli`
+- Emotional categories:
+  - **Positive / motivated**
+  - **Low mood or fatigue**
+  - **High emotional distress**
+- Severity levels:
   - Low
   - Mild
   - High  
-  (model-driven, not keyword-based)
+- Severity is **model-driven**, not keyword-based
 
-### 🧭 Structured Guidance (Roadmap)
-- Severity-aware action steps
+---
+
+### Structured Guidance (Roadmap)
+- Deterministic, rule-based action steps
+- Tailored to severity level
 - Designed to be:
-  - Non-generic
   - Clear
+  - Non-generic
   - Ethically safe
-- High-severity responses explicitly encourage seeking professional help
+- High-severity cases encourage seeking professional help
 
-### 📺 YouTube Recommendations
+---
+
+### YouTube Recommendations
 - Dynamically generated based on severity
-- Uses YouTube Data API
+- Powered by YouTube Data API
 - Examples:
   - Grounding & breathing exercises (high)
-  - Fatigue recovery & calm focus (mild)
-  - Productivity & motivation (low)
-
-### 🖥️ Modern Frontend
-- React + Vite
-- Clean, responsive UI
-- Separate pages for:
-  - Home (Analyzer)
-  - About
-  - Resources
-  - Contact
-- Active navigation highlighting
-- Severity-based visual indicators
+  - Mental fatigue recovery (mild)
+  - Motivation & productivity (low)
 
 ---
 
@@ -70,7 +64,7 @@ The system analyzes user-provided text, detects emotional sentiment, assigns a s
 - React 18
 - Vite
 - React Router DOM
-- CSS (custom, no UI framework)
+- Custom CSS (no UI framework)
 
 ### Backend
 - FastAPI
@@ -81,23 +75,62 @@ The system analyzes user-provided text, detects emotional sentiment, assigns a s
 
 ---
 
-## 🚀 Running the Project Locally
+## Project Structure
 
-### 1️⃣ Clone the repository
-```bash
-git clone <your-repo-url>
-cd sentiment-analysis-project
+```
+
+sentiment-analysis-project/
+│
+├── api/
+│   └── main.py               # FastAPI backend
+│
+├── frontend/                 # React frontend
+│
+├── data/                     # Datasets (exploration only)
+├── notebooks/                # Experiments
+│
+├── requirements.txt
+├── .env
+├── README.md
+└── TEST_CASES.md
+
+```
+
+---
+
+## Inference Pipeline
+
+```
+
+User Text
+↓
+Language Detection
+↓
+Translation → English
+↓
+Sentiment Classification
+↓
+Severity Mapping
+↓
+Roadmap Selection
+↓
+Translation → Original Language
+↓
+JSON Response
+
 ````
 
 ---
 
-### 2️⃣ Backend Setup (FastAPI)
+## Running the Project Locally
+
+### Backend (FastAPI)
 
 ```bash
 python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+venv\Scripts\activate   # Windows
 pip install -r requirements.txt
-```
+````
 
 Create a `.env` file:
 
@@ -119,7 +152,7 @@ http://127.0.0.1:8000
 
 ---
 
-### 3️⃣ Frontend Setup (React + Vite)
+### Frontend (React + Vite)
 
 ```bash
 cd frontend
@@ -135,48 +168,30 @@ http://localhost:5173
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### `POST /analyze`
 
-Analyzes a single text input.
-
-**Request**
+Analyzes a single input.
 
 ```json
 {
-  "text": "I feel overwhelmed and exhausted"
+  "text": "ನಾನು ತುಂಬಾ ದಣಿದಿದ್ದೇನೆ"
 }
 ```
-
-**Response**
-
-```json
-{
-  "text": "...",
-  "sentiment": "...",
-  "confidence": 0.87,
-  "severity": "Mild",
-  "roadmap": [...],
-  "youtube_recommendations": [...],
-  "language": "en"
-}
-```
-
----
 
 ### `POST /analyze-batch`
 
-Analyzes multiple inputs at once.
+Analyzes multiple inputs in one request.
 
 ---
 
-## 🧪 Edge Case Handling
+## Robust Input Handling
 
 The system safely handles:
 
 * Empty or whitespace input
-* Symbol-only input (e.g. `...`, `!!!`)
+* Symbol-only input (`...`, `!!!`)
 * Very short or ambiguous text
 * Non-English scripts
 
@@ -184,19 +199,17 @@ No crashes. No undefined states.
 
 ---
 
-## 📌 Ethical Disclaimer
+## Ethical Disclaimer
 
-This system:
+This system provides **non-clinical, informational guidance only**.
+It does **not** diagnose conditions or replace professional care.
 
-* Provides **non-clinical, informational guidance only**
-* Does **not** diagnose conditions
-* Encourages professional help when high distress is detected
-
-If you are experiencing severe emotional distress, please contact a qualified mental health professional or local emergency services.
+If you are experiencing severe emotional distress, please contact a qualified
+mental health professional or local emergency services.
 
 ---
 
-## 👩‍💻 Author
+##  Author
 
 Built by a student as a practical exploration of:
 
@@ -209,10 +222,7 @@ Built by a student as a practical exploration of:
 
 ---
 
-## 📄 License
+##  License
 
-This project is intended for educational and research use.
-
-```
-
+This project is intended for educational and research use only.
 
