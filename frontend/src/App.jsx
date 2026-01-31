@@ -35,10 +35,7 @@ export default function App() {
 
   /* ---------- CLEAN RESET ON LANGUAGE SWITCH ---------- */
   const handleLanguageChange = (e) => {
-    const newLang = e.target.value;
-    setLanguage(newLang);
-
-    // hard reset (fast + invisible to user)
+    setLanguage(e.target.value);
     setText("");
     setResults([]);
     setError("");
@@ -154,42 +151,54 @@ export default function App() {
                 <SentimentCircle severity={aggregate.severity} />
 
                 <section className="app-results-section">
-                  <h2 className="app-results-title">{t.resultsTitle}</h2>
+                  {/* ---------- ANALYSIS RESULTS CARD ---------- */}
+                  <div className="app-results-roadmap-card">
+                    <h3 className="app-results-roadmap-title">
+                      {t.resultsTitle}
+                    </h3>
 
-                  <div className="app-results-report">
-                    <p className="app-results-line">
-                      <span className="app-results-label">{t.textLabel}</span>
-                      {aggregate.text}
-                    </p>
+                    <div className="app-results-card">
+                      <div className="app-results-row">
+                        <span className="app-results-label">{t.textLabel}</span>
+                        <span className="app-results-value">
+                          {aggregate.text}
+                        </span>
+                      </div>
 
-                    <p className="app-results-line">
-                      <span className="app-results-label">
-                        {t.sentimentLabel}
-                      </span>
-                      {aggregate.sentiment}
-                    </p>
+                      <div className="app-results-row">
+                        <span className="app-results-label">
+                          {t.sentimentLabel}
+                        </span>
+                        <span className="app-results-value">
+                          {aggregate.sentiment}
+                        </span>
+                      </div>
 
-                    <p className="app-results-line">
-                      <span className="app-results-label">
-                        {t.severityLabel}
-                      </span>
-                      <span
-                        className={`app-results-severity-pill app-severity-${aggregate.severity
-                          .toLowerCase()
-                          .replace(/\s+/g, "-")}`}
-                      >
-                        {aggregate.severity}
-                      </span>
-                    </p>
+                      <div className="app-results-row">
+                        <span className="app-results-label">
+                          {t.severityLabel}
+                        </span>
+                        <span
+                          className={`app-results-severity-pill app-severity-${aggregate.severity
+                            .toLowerCase()
+                            .replace(/\s+/g, "-")}`}
+                        >
+                          {aggregate.severity}
+                        </span>
+                      </div>
 
-                    <p className="app-results-line">
-                      <span className="app-results-label">
-                        {t.confidenceLabel}
-                      </span>
-                      {aggregate.confidence}
-                    </p>
+                      <div className="app-results-row">
+                        <span className="app-results-label">
+                          {t.confidenceLabel}
+                        </span>
+                        <span className="app-results-value">
+                          {aggregate.confidence}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
+                  {/* ---------- GUIDED ROADMAP CARD ---------- */}
                   <div className="app-results-roadmap-card">
                     <h3 className="app-results-roadmap-title">
                       {t.roadmapTitle}
@@ -202,7 +211,9 @@ export default function App() {
                   </div>
                 </section>
 
-                <YouTubeRecs videos={aggregate.youtube_recommendations} />
+                <YouTubeRecs
+                  videos={aggregate.youtube_recommendations}
+                />
               </>
             )}
           </div>
