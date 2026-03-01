@@ -128,23 +128,37 @@ def translate(text: str, src: str, tgt: str) -> str:
 # =========================
 # INPUT VALIDATION (ADDED)
 # =========================
+import string
 
 def is_meaningful_text(text: str) -> bool:
-    if not text:
+    if not text or not text.strip():
         return False
 
-    cleaned = text.strip()
+    stripped = text.strip()
 
-    # Remove numbers, punctuation, symbols (keep letters across scripts)
-    cleaned = re.sub(r"[^A-Za-z\u0900-\u097F\u0B80-\u0BFF\u0C00-\u0C7F]", "", cleaned)
+    # Reject pure punctuation / symbols only
+    if all(char in string.punctuation or char.isspace() for char in stripped):
+        return False
 
-    return len(cleaned) >= 2
-
+    return True
 # =========================
 # SEVERITY (FIXED, MODEL-DRIVEN)
 # =========================
+RISK_PATTERNS = [
+    r"no value",
+    r"worthless",
+    r"no meaning",
+    r"no reason to live",
+    r"want to disappear",
+    r"better off without me",
+    r"if i wasn't here",
+    r"if i was not here",
+    r"easier without me",
+    r"shouldn't exist",
+    r"don't deserve to live"
+]
 
-def severity_from_result(result: dict) -> str:
+def severity_from_result(result: dict, text_en: str) -> str:
     labels = result["labels"]
     scores = result["scores"]
 
@@ -154,7 +168,15 @@ def severity_from_result(result: dict) -> str:
     fatigue = score_map.get("Low mood or fatigue", 0)
     positive = score_map.get("Positive / motivated", 0)
 
-    if distress > 0.45 and distress > fatigue and positive < 0.2:
+    text_lower = text_en.lower()
+
+    # 🔴 Safety override for existential phrases
+
+    for pattern in RISK_PATTERNS:
+        if re.search(pattern, text_lower):
+         return "High"
+    # 🔴 Lowered threshold slightly
+    if distress > 0.40 and distress == max(distress, fatigue, positive):
         return "High"
 
     if fatigue > positive:
@@ -273,7 +295,13 @@ def analyze_text(req: TextRequest):
 
     sentiment = result["labels"][0]
     confidence = round(float(result["scores"][0]), 3)
-    severity = severity_from_result(result)
+    severity = severity_from_result(result,text_en)
+    print({
+    "language": lang,
+    "translated": text_en,
+    "scores": dict(zip(result["labels"], result["scores"])),
+    "severity": severity
+})
 
     roadmap_en = generate_roadmap(severity)
     roadmap_out = [
