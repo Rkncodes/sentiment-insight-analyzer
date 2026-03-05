@@ -52,13 +52,13 @@ function Home() {
     setResults([]);
 
     // Reject empty or non-semantic input (punctuation-only)
-    const hasLetters = /[a-zA-Z\u0900-\u097F\u0C80-\u0CFF]/.test(text);
+    const cleaned = text.trim();
+const hasLetters = /\p{L}/u.test(cleaned);
 
-    if (!text.trim() || !hasLetters) {
-      setError("Input does not contain enough meaningful text for analysis.");
-      return;
-    }
-
+if (!cleaned || !hasLetters) {
+  setError("Input does not contain enough meaningful text for analysis.");
+  return;
+}
 
     setLoading(true);
 
@@ -66,7 +66,7 @@ function Home() {
       const res = await fetch("http://127.0.0.1:8000/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ text,language })
       });
 
       const data = await res.json();

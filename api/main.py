@@ -6,16 +6,24 @@ import langid
 import torch
 import os
 import requests
+import time 
 import re
+import torch.quantization
 from dotenv import load_dotenv
+from sentence_transformers import SentenceTransformer, util
 from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
+
 
 # =========================
 # ENV
 # =========================
 
 load_dotenv()
+
+HF_TOKEN = os.getenv("HF_TOKEN")
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+
+print("YouTube key loaded:", bool(YOUTUBE_API_KEY))
 
 # =========================
 # APP
@@ -43,10 +51,13 @@ MODEL_DEVICE = "cuda" if DEVICE == 0 else "cpu"
 # =========================
 
 sentiment_classifier = pipeline(
-    "zero-shot-classification",
-    model="facebook/bart-large-mnli",
+    "text-classification",
+    model="cardiffnlp/twitter-roberta-base-sentiment-latest",
     device=DEVICE
 )
+
+# Semantic similarity model (for crisis detection)
+embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
 
 TRANSLATION_MODEL = "facebook/nllb-200-distilled-600M"
 
@@ -54,6 +65,17 @@ translator_tokenizer = AutoTokenizer.from_pretrained(TRANSLATION_MODEL)
 translator_model = AutoModelForSeq2SeqLM.from_pretrained(
     TRANSLATION_MODEL
 ).to(MODEL_DEVICE)
+
+translator_model.eval()
+
+
+translator_model = torch.quantization.quantize_dynamic(
+    translator_model,
+    {torch.nn.Linear},
+    dtype=torch.qint8
+)
+
+torch.set_num_threads(8)
 
 # =========================
 # CONSTANTS
@@ -64,6 +86,32 @@ LABELS = [
     "Low mood or fatigue",
     "High emotional distress"
 ]
+
+
+RISK_ANCHORS = [
+"I want to die",
+"I feel suicidal",
+"I want to end my life",
+"I don't want to live anymore",
+"My life has no meaning",
+"There is no point in living",
+"I feel worthless",
+"Everyone would be better off without me",
+"The world would be better without me",
+"I shouldn't exist",
+"I want to disappear",
+"I wish I wasn't here",
+"I can't keep going",
+"I just want everything to stop",
+"Nothing will ever get better",
+"I don't see a future for myself"
+]
+
+risk_anchor_embeddings = embedding_model.encode(
+    RISK_ANCHORS,
+    convert_to_tensor=True
+)
+
 
 LANG_MAP = {
     "en": "eng_Latn",
@@ -85,6 +133,7 @@ LANG_MAP = {
 
 class TextRequest(BaseModel):
     text: str
+    language: str | None = None
 
 class BatchRequest(BaseModel):
     texts: List[str]
@@ -100,6 +149,10 @@ def detect_language(text: str) -> str:
 def translate(text: str, src: str, tgt: str) -> str:
     if src == tgt:
         return text
+
+    # Safety guard
+    if src not in LANG_MAP:
+        src = "en"
 
     translator_tokenizer.src_lang = LANG_MAP[src]
 
@@ -117,14 +170,15 @@ def translate(text: str, src: str, tgt: str) -> str:
         tokens = translator_model.generate(
             **inputs,
             forced_bos_token_id=forced_bos_token_id,
-            max_length=256
+            max_new_tokens=40,
+            num_beams=1,
+            do_sample=False
         )
 
     return translator_tokenizer.batch_decode(
         tokens,
         skip_special_tokens=True
     )[0]
-
 # =========================
 # INPUT VALIDATION (ADDED)
 # =========================
@@ -145,41 +199,97 @@ def is_meaningful_text(text: str) -> bool:
 # SEVERITY (FIXED, MODEL-DRIVEN)
 # =========================
 RISK_PATTERNS = [
+
     r"no value",
     r"worthless",
     r"no meaning",
+    r"life has no meaning",
+    r"life is meaningless",
+
     r"no reason to live",
+    r"tired of living",
+
     r"want to disappear",
+    r"wish i could disappear",
+
     r"better off without me",
+    r"better without me",
+    r"people would be better off without me",
+
     r"if i wasn't here",
     r"if i was not here",
-    r"easier without me",
+    r"if i weren't here",
+
+    r"better if i wasn't here",
+    r"better if i was not here",
+
     r"shouldn't exist",
-    r"don't deserve to live"
+    r"should not exist",
+
+    r"don't deserve to live",
+
+    r"life is pointless",
+    r"everything is pointless",
+
+    r"give up on life",
+    r"can't go on",
+
 ]
 
+DESPAIR_PATTERNS = [
+    "no point",
+    "no future",
+    "can't keep going",
+    "cannot keep going",
+    "everything is pointless",
+    "nothing matters",
+    "nothing will get better",
+    "i feel trapped",
+    "i feel hopeless",
+    "there is no way out"
+]
+def split_clauses(text):
+    return re.split(r"[.,;!?]", text)
+
 def severity_from_result(result: dict, text_en: str) -> str:
-    labels = result["labels"]
-    scores = result["scores"]
 
-    score_map = dict(zip(labels, scores))
+    clauses = split_clauses(text_en)
 
-    distress = score_map.get("High emotional distress", 0)
-    fatigue = score_map.get("Low mood or fatigue", 0)
-    positive = score_map.get("Positive / motivated", 0)
+    for clause in clauses:
+        clause_lower = clause.lower()
+
+        for pattern in RISK_PATTERNS:
+            if re.search(pattern, clause_lower):
+                return "High"
+
+        for phrase in DESPAIR_PATTERNS:
+            if phrase in clause_lower:
+                return "High"
+
+    sentiment = result["labels"][0]
+    score = result["scores"][0]
 
     text_lower = text_en.lower()
 
-    # 🔴 Safety override for existential phrases
-
+    # 1️⃣ Explicit suicide detection
     for pattern in RISK_PATTERNS:
         if re.search(pattern, text_lower):
-         return "High"
-    # 🔴 Lowered threshold slightly
-    if distress > 0.40 and distress == max(distress, fatigue, positive):
+            return "High"
+
+    # 2️⃣ Despair + negative mood
+    for phrase in DESPAIR_PATTERNS:
+        if phrase in text_lower and sentiment == "negative":
+            return "High"
+
+    # 3️⃣ Semantic similarity
+    text_embedding = embedding_model.encode(text_en, convert_to_tensor=True)
+    similarities = util.cos_sim(text_embedding, risk_anchor_embeddings)[0]
+
+    if similarities.max() > 0.68:
         return "High"
 
-    if fatigue > positive:
+    # 4️⃣ Negative mood
+    if sentiment == "negative":
         return "Mild"
 
     return "Low"
@@ -219,18 +329,14 @@ def generate_roadmap(severity: str):
 # YOUTUBE
 # =========================
 
-def yt_query_for_severity(severity: str):
-    if severity == "High":
-        return "grounding exercise emotional distress breathing"
-    if severity == "Mild":
-        return "mental fatigue recovery calm motivation"
-    return "positive mindset productivity motivation"
-
 def youtube_search(query: str, max_results=8):
+
     if not YOUTUBE_API_KEY:
+        print("No YouTube API key")
         return []
 
     search_url = "https://www.googleapis.com/youtube/v3/search"
+
     search_params = {
         "part": "snippet",
         "q": query,
@@ -241,16 +347,20 @@ def youtube_search(query: str, max_results=8):
 
     search_res = requests.get(search_url, params=search_params).json()
 
+    print("YOUTUBE SEARCH RESPONSE:", search_res)
+
     video_ids = [
         item["id"]["videoId"]
         for item in search_res.get("items", [])
-        if "videoId" in item["id"]
+        if item.get("id", {}).get("videoId")
     ]
 
     if not video_ids:
+        print("No videos found")
         return []
 
     stats_url = "https://www.googleapis.com/youtube/v3/videos"
+
     stats_params = {
         "part": "snippet,statistics",
         "id": ",".join(video_ids),
@@ -260,6 +370,7 @@ def youtube_search(query: str, max_results=8):
     stats_res = requests.get(stats_url, params=stats_params).json()
 
     videos = []
+
     for item in stats_res.get("items", []):
         videos.append({
             "videoId": item["id"],
@@ -275,44 +386,108 @@ def youtube_search(query: str, max_results=8):
 # =========================
 # ENDPOINTS
 # =========================
+def translate_batch(texts, src, tgt):
+    if src == tgt:
+        return texts
+
+    if src not in LANG_MAP:
+        src = "en"
+
+    translator_tokenizer.src_lang = LANG_MAP[src]
+
+    inputs = translator_tokenizer(
+        texts,
+        return_tensors="pt",
+        padding=True,
+        truncation=True
+    ).to(MODEL_DEVICE)
+
+    forced_bos_token_id = translator_tokenizer.convert_tokens_to_ids(
+        LANG_MAP[tgt]
+    )
+
+    with torch.no_grad():
+        tokens = translator_model.generate(
+            **inputs,
+            forced_bos_token_id=forced_bos_token_id,
+            max_new_tokens=40,
+            num_beams=1,
+            do_sample=False
+        )
+
+    return translator_tokenizer.batch_decode(
+        tokens,
+        skip_special_tokens=True
+    )
+def yt_query_for_severity(severity: str):
+    if severity == "High":
+        return "grounding exercise emotional distress breathing"
+    if severity == "Mild":
+        return "mental fatigue recovery calm motivation"
+    return "positive mindset productivity motivation"
+
 
 @app.post("/analyze")
 def analyze_text(req: TextRequest):
+
+    start_time = time.time()
+
     original = req.text
+
+
 
     if not is_meaningful_text(original):
         return {
             "error": "Input is too short or not meaningful for sentiment analysis."
         }
 
-    lang = detect_language(original)
-    text_en = translate(original, lang, "en")
+    lang = req.language if req.language and req.language != "auto" else detect_language(original)
 
-    result = sentiment_classifier(
-        text_en,
-        candidate_labels=LABELS
-    )
+    # Skip translation if already English
+    text_en = original if lang == "en" else translate(original, lang, "en")
+
+    raw = sentiment_classifier(text_en)[0]
+
+    sentiment = raw["label"].lower()
+    confidence = round(float(raw["score"]), 3)
+
+    result = {
+    "labels": [sentiment],
+    "scores": [raw["score"]]
+    }
 
     sentiment = result["labels"][0]
-    confidence = round(float(result["scores"][0]), 3)
-    severity = severity_from_result(result,text_en)
+    severity = severity_from_result(result, text_en)
+
     print({
-    "language": lang,
-    "translated": text_en,
-    "scores": dict(zip(result["labels"], result["scores"])),
-    "severity": severity
-})
+        "language": lang,
+        "translated": text_en,
+        "scores": dict(zip(result["labels"], result["scores"])),
+        "severity": severity
+    })
 
     roadmap_en = generate_roadmap(severity)
-    roadmap_out = [
-        {"text": translate(step["text"], "en", lang), "level": step["level"]}
-        for step in roadmap_en
-    ]
 
-    yt_results = youtube_search(
+    roadmap_texts = [step["text"] for step in roadmap_en]
+
+    if lang == "en":
+     translated_steps = roadmap_texts
+    else:
+      translated_steps = translate_batch(roadmap_texts, "en", lang)
+    roadmap_out = [
+    {"text": translated_steps[i], "level": roadmap_en[i]["level"]}
+    for i in range(len(roadmap_en))
+]
+    try:
+     yt_results = youtube_search(
         yt_query_for_severity(severity),
         max_results=8
-    )
+    ) 
+    except:
+     yt_results = []
+     
+    
+    print("Request latency:", round(time.time() - start_time, 2), "seconds")
 
     return {
         "text": original,
@@ -323,6 +498,7 @@ def analyze_text(req: TextRequest):
         "youtube_recommendations": yt_results,
         "language": lang
     }
+
 
 @app.post("/analyze-batch")
 def analyze_batch(req: BatchRequest):
